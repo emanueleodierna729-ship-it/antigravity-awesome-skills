@@ -92,12 +92,13 @@ def upgrade_pip():
 #  PACKAGE LIST
 # ──────────────────────────────────────────────────────────────
 CORE_PACKAGES = [
-    ("opencv-python",   "4.8.0"),
-    ("mediapipe",       "0.10.0"),
-    ("pyautogui",       "0.9.54"),
-    ("numpy",           "1.24.0"),
-    ("Pillow",          "10.0.0"),
-    ("pynput",          "1.7.6"),
+    ("opencv-python",      "4.8.0"),
+    ("mediapipe",          "0.10.0"),
+    ("pyautogui",          "0.9.54"),
+    ("numpy",              "1.24.0"),
+    ("Pillow",             "10.0.0"),
+    ("pynput",             "1.7.6"),
+    ("SpeechRecognition",  "3.10.0"),
 ]
 
 # Extra per Linux: la libreria X11 Python (pynput richiede)
@@ -112,6 +113,44 @@ def _install(pkg_name: str, min_ver: str | None):
         [sys.executable, "-m", "pip", "install", "--upgrade", spec],
         check=True, capture_output=True,
     )
+
+
+def _install_pyaudio():
+    """PyAudio richiede portaudio di sistema; gestione per piattaforma."""
+    system = platform.system()
+    step(f"Installazione  {W}PyAudio{RST} (microfono per controllo vocale) …")
+    if system == "Linux":
+        # Prova prima a installare portaudio via apt, poi pip
+        has_apt = shutil.which("apt-get") is not None
+        if has_apt:
+            try:
+                subprocess.run(
+                    ["sudo", "apt-get", "install", "-y", "portaudio19-dev"],
+                    check=True, capture_output=True,
+                )
+            except subprocess.CalledProcessError:
+                warn("portaudio19-dev non installabile automaticamente.\n"
+                     "     Esegui manualmente:  sudo apt install portaudio19-dev")
+    elif system == "Darwin":
+        has_brew = shutil.which("brew") is not None
+        if has_brew:
+            try:
+                subprocess.run(["brew", "install", "portaudio"],
+                               check=True, capture_output=True)
+            except subprocess.CalledProcessError:
+                warn("portaudio non installabile via brew.\n"
+                     "     Installa manualmente: brew install portaudio")
+        else:
+            warn("Homebrew non trovato. Installa portaudio:\n"
+                 "     brew install portaudio")
+    try:
+        _install("pyaudio", None)
+        ok("PyAudio")
+    except subprocess.CalledProcessError:
+        warn("PyAudio non installato — il controllo vocale non sarà disponibile.\n"
+             "     Linux:   sudo apt install portaudio19-dev && pip install pyaudio\n"
+             "     macOS:   brew install portaudio && pip install pyaudio\n"
+             "     Windows: pip install pyaudio")
 
 
 def install_packages():
@@ -144,6 +183,9 @@ def install_packages():
                 err(f"Impossibile installare {pkg}: {exc.stderr.decode()[:200]}")
                 failed.append(pkg)
 
+    # PyAudio ha dipendenze di sistema — gestione separata
+    _install_pyaudio()
+
     if failed:
         err(f"\nPacchetti non installati: {', '.join(failed)}")
         warn("L'applicazione potrebbe non funzionare correttamente.")
@@ -163,7 +205,10 @@ def system_hints():
     sudo dnf install python3-tkinter  (Fedora)
 
   Per il controllo del mouse senza permessi speciali su Wayland
-  potrebbe essere necessario usare una sessione X11.{RST}
+  potrebbe essere necessario usare una sessione X11.
+
+  Per il controllo vocale (microfono):
+    sudo apt install portaudio19-dev python3-pyaudio{RST}
 """)
     elif system == "Darwin":
         print(f"""  {DIM}Nota macOS: se Accessibility è bloccato vai in:

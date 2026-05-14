@@ -14,6 +14,11 @@ import threading
 import time
 import math
 import sys
+import re
+import os
+import webbrowser
+import subprocess
+import platform as _platform
 from collections import deque, Counter
 from PIL import Image, ImageTk
 
@@ -62,6 +67,11 @@ class Cfg:
     SCR_W, SCR_H = pyautogui.size()
     MARGIN_X     = 0.12
     MARGIN_Y     = 0.12
+
+    # Voice control
+    VOICE_LANG       = "it-IT"
+    VOICE_TIMEOUT    = 3
+    VOICE_PHRASE_MAX = 6
 
     # Tkinter palette
     BG_DARK  = "#0d1117"
@@ -921,6 +931,175 @@ class CameraThread(threading.Thread):
 
 
 # ─────────────────────────────────────────────────────────────
+#  COMMAND PARSER  — Italian regex-based command recognition
+# ─────────────────────────────────────────────────────────────
+class CommandParser:
+    _CMDS = [
+        (r'apri\s+youtube\b',                 'open_url',      'https://www.youtube.com'),
+        (r'apri\s+google\b',                  'open_url',      'https://www.google.it'),
+        (r'apri\s+gmail\b',                   'open_url',      'https://mail.google.com'),
+        (r'nuova\s+cartella\b',               'create_folder', 'Nuova Cartella'),
+        (r'crea\s+cartella(?:\s+(.+))?',      'create_folder', None),
+        (r'apri\s+(.+)',                       'open_app',      None),
+        (r'vai\s+su\s+(.+)',                  'open_url',      None),
+        (r'cerca\s+(.+)',                      'search',        None),
+        (r'(?:scrivi|digita|testo)\s+(.+)',    'type',          None),
+        (r'seleziona\s+tutto\b',              'hotkey',        ('ctrl', 'a')),
+        (r'copia\b',                           'hotkey',        ('ctrl', 'c')),
+        (r'incolla\b',                         'hotkey',        ('ctrl', 'v')),
+        (r'annulla\b',                         'hotkey',        ('ctrl', 'z')),
+        (r'rifai\b',                           'hotkey',        ('ctrl', 'y')),
+        (r'salva\b',                           'hotkey',        ('ctrl', 's')),
+        (r'chiudi(?:\s+finestra)?\b',          'hotkey',        ('alt', 'f4')),
+        (r'zoom\s+avanti\b',                  'zoom',          1),
+        (r'zoom\s+indietro\b',                'zoom',          -1),
+        (r'ingrandisci\b',                    'zoom',          1),
+        (r'rimpicciolisci\b',                 'zoom',          -1),
+        (r'(?:screenshot|schermo)\b',         'screenshot',    None),
+        (r'invio\b',                          'hotkey',        ('return',)),
+        (r'cancella\b',                       'hotkey',        ('backspace',)),
+        (r'volume\s+su\b',                    'hotkey',        ('volumeup',)),
+        (r'volume\s+gi[u\xf9]\b',             'hotkey',        ('volumedown',)),
+        (r'muto\b',                           'hotkey',        ('volumemute',)),
+        (r'torna\s+indietro\b',               'hotkey',        ('alt', 'left')),
+        (r'vai\s+avanti\b',                   'hotkey',        ('alt', 'right')),
+        (r'(?:cambio\s+finestra|alt\s+tab)\b','hotkey',        ('alt', 'tab')),
+        (r'desktop\b',                        'hotkey',        ('super', 'd')),
+    ]
+
+    def __init__(self):
+        self._compiled = [
+            (re.compile(pat, re.IGNORECASE), action, args)
+            for pat, action, args in self._CMDS
+        ]
+
+    def parse(self, text: str):
+        """Return (action, args) or None."""
+        t = text.strip()
+        for pattern, action, static_args in self._compiled:
+            m = pattern.search(t)
+            if m:
+                args = static_args
+                if args is None and m.lastindex:
+                    args = m.group(1).strip()
+                return action, args
+        return None
+
+
+# ─────────────────────────────────────────────────────────────
+#  VOICE CONTROLLER  — Italian speech recognition (daemon thread)
+# ─────────────────────────────────────────────────────────────
+class VoiceController:
+    def __init__(self, mouse: SmoothMouse, on_command):
+        self._mouse    = mouse
+        self._cb       = on_command
+        self._parser   = CommandParser()
+        self._running  = False
+        self._thread   = None
+        self.status    = "OFFLINE"
+        self.last_text = ""
+        self.history   = deque(maxlen=6)
+
+        try:
+            import speech_recognition  # noqa: F401
+            self.available = True
+        except ImportError:
+            self.available = False
+
+    def start(self):
+        if not self.available or self._running:
+            return
+        self._running = True
+        self.status   = "AVVIO..."
+        self._thread  = threading.Thread(target=self._loop, daemon=True)
+        self._thread.start()
+
+    def stop(self):
+        self._running = False
+        self.status   = "OFFLINE"
+
+    def _loop(self):
+        import speech_recognition as sr
+        rec = sr.Recognizer()
+        try:
+            with sr.Microphone() as mic:
+                rec.adjust_for_ambient_noise(mic, duration=0.5)
+        except Exception:
+            self.status   = "MIC ERR"
+            self._running = False
+            return
+
+        self.status = "ASCOLTO"
+        while self._running:
+            try:
+                with sr.Microphone() as mic:
+                    audio = rec.listen(
+                        mic,
+                        timeout=Cfg.VOICE_TIMEOUT,
+                        phrase_time_limit=Cfg.VOICE_PHRASE_MAX,
+                    )
+                self.status = "RICONOSCIMENTO..."
+                text = rec.recognize_google(audio, language=Cfg.VOICE_LANG)
+                self.last_text = text
+                self.history.appendleft(text)
+                result = self._parser.parse(text)
+                if result:
+                    action, args = result
+                    self._execute(action, args)
+                    self._cb(text, action)
+                else:
+                    self._cb(text, None)
+                self.status = "ASCOLTO"
+            except sr.WaitTimeoutError:
+                self.status = "ASCOLTO"
+            except sr.UnknownValueError:
+                self.status = "NON CAPITO"
+                time.sleep(0.4)
+                self.status = "ASCOLTO"
+            except Exception as e:
+                self.status = f"ERR: {str(e)[:18]}"
+                time.sleep(1.5)
+                self.status = "ASCOLTO"
+
+    def _execute(self, action: str, args):
+        m = self._mouse
+        try:
+            if action == 'open_url':
+                url = str(args)
+                if not url.startswith('http'):
+                    url = 'https://' + url
+                webbrowser.open(url)
+            elif action == 'open_app':
+                name = str(args)
+                sys_ = _platform.system()
+                if sys_ == "Darwin":
+                    subprocess.Popen(["open", "-a", name])
+                elif sys_ == "Windows":
+                    os.startfile(name)
+                else:
+                    subprocess.Popen(["xdg-open", name])
+            elif action == 'search':
+                q = str(args).replace(' ', '+')
+                webbrowser.open(f"https://www.google.it/search?q={q}")
+            elif action == 'create_folder':
+                name   = str(args) if args else 'Nuova Cartella'
+                target = os.path.join(os.path.expanduser("~"), "Desktop", name)
+                os.makedirs(target, exist_ok=True)
+            elif action == 'hotkey':
+                m.hotkey(*args)
+            elif action == 'zoom':
+                m.zoom(int(args))
+            elif action == 'type':
+                pyautogui.write(str(args), interval=0.04)
+            elif action == 'screenshot':
+                ts   = time.strftime("%Y%m%d_%H%M%S")
+                path = os.path.expanduser(f"~/Desktop/screenshot_{ts}.png")
+                pyautogui.screenshot(path)
+        except Exception:
+            pass
+
+
+# ─────────────────────────────────────────────────────────────
 #  DASHBOARD
 # ─────────────────────────────────────────────────────────────
 class Dashboard(tk.Tk):
@@ -930,6 +1109,7 @@ class Dashboard(tk.Tk):
         self.hand_active = False
         self._vk         = None
         self._cam        = None
+        self._voice      = VoiceController(self.mouse, self._on_voice_cmd)
 
         self._setup_window()
         self._build_ui()
@@ -939,8 +1119,8 @@ class Dashboard(tk.Tk):
     def _setup_window(self):
         self.title("Hand Gesture Control  ✋  v2")
         self.configure(bg=Cfg.BG_DARK)
-        self.geometry("1080x680")
-        self.minsize(900, 580)
+        self.geometry("1160x800")
+        self.minsize(860, 620)
         self.protocol("WM_DELETE_WINDOW", self._on_close)
 
     def _build_ui(self):
@@ -956,26 +1136,55 @@ class Dashboard(tk.Tk):
         self._hands_lbl = tk.Label(hdr, text="",
                  font=("Segoe UI", 10), bg=Cfg.BG_DARK, fg=Cfg.TEXT_DIM)
         self._hands_lbl.pack(side="right", padx=4)
+        self._voice_hdr_lbl = tk.Label(hdr, text="🎤 OFFLINE",
+                 font=("Segoe UI", 11), bg=Cfg.BG_DARK, fg="#ff4444")
+        self._voice_hdr_lbl.pack(side="right", padx=16)
 
         tk.Frame(self, bg=Cfg.BG_CARD, height=1).pack(fill="x", padx=12)
 
         body = tk.Frame(self, bg=Cfg.BG_DARK)
         body.pack(fill="both", expand=True, padx=12, pady=8)
 
-        # Camera panel
-        left = tk.Frame(body, bg=Cfg.BG_MID)
-        left.pack(side="left", fill="both", expand=True, padx=(0, 6))
-        tk.Label(left, text="CAMERA FEED",
+        # Camera panel (expands with window)
+        self._left_panel = tk.Frame(body, bg=Cfg.BG_MID)
+        self._left_panel.pack(side="left", fill="both", expand=True, padx=(0, 6))
+        tk.Label(self._left_panel, text="CAMERA FEED",
                  font=("Segoe UI", 8, "bold"),
                  bg=Cfg.BG_MID, fg=Cfg.TEXT_DIM).pack(pady=(8, 2))
-        self._cam_lbl = tk.Label(left, bg="#000000")
-        self._cam_lbl.pack(padx=8, pady=(0, 8))
+        self._cam_lbl = tk.Label(self._left_panel, bg="#000000")
+        self._cam_lbl.pack(padx=8, pady=(0, 8), fill="both", expand=True)
 
-        # Control panel
-        right = tk.Frame(body, bg=Cfg.BG_DARK, width=320)
+        # Control panel (right, fixed 340px, tabbed)
+        right = tk.Frame(body, bg=Cfg.BG_DARK, width=340)
         right.pack(side="right", fill="y")
         right.pack_propagate(False)
-        self._build_controls(right)
+
+        style = ttk.Style(self)
+        style.theme_use("default")
+        style.configure("Dark.TNotebook",
+                        background=Cfg.BG_DARK, borderwidth=0, tabmargins=[2, 2, 2, 0])
+        style.configure("Dark.TNotebook.Tab",
+                        background=Cfg.BG_CARD, foreground=Cfg.TEXT_DIM,
+                        font=("Segoe UI", 8, "bold"), padding=[10, 5])
+        style.map("Dark.TNotebook.Tab",
+                  background=[("selected", Cfg.BG_MID)],
+                  foreground=[("selected", Cfg.TEXT)])
+
+        nb = ttk.Notebook(right, style="Dark.TNotebook")
+        nb.pack(fill="both", expand=True, padx=4, pady=4)
+
+        tab_hands = tk.Frame(nb, bg=Cfg.BG_DARK)
+        nb.add(tab_hands, text=" Mani ")
+
+        tab_voice = tk.Frame(nb, bg=Cfg.BG_DARK)
+        nb.add(tab_voice, text=" Voce ")
+
+        tab_guide = tk.Frame(nb, bg=Cfg.BG_MID)
+        nb.add(tab_guide, text=" Guida ")
+
+        self._build_hands_tab(tab_hands)
+        self._build_voice_tab(tab_voice)
+        self._build_guide_tab(tab_guide)
 
     def _card(self, parent, title):
         f = tk.Frame(parent, bg=Cfg.BG_CARD)
@@ -984,8 +1193,7 @@ class Dashboard(tk.Tk):
                  bg=Cfg.BG_CARD, fg=Cfg.TEXT_DIM).pack(pady=(10, 4))
         return f
 
-    def _build_controls(self, parent):
-        # Hand control toggle
+    def _build_hands_tab(self, parent):
         c1 = self._card(parent, "CONTROLLO MANI")
         tk.Label(c1, text="Riconosce entrambe le mani:\ndestra = cursore  |  sinistra = modificatore",
                  font=("Segoe UI", 8), bg=Cfg.BG_CARD,
@@ -997,7 +1205,6 @@ class Dashboard(tk.Tk):
             command=self._toggle_hand)
         self._hand_btn.pack(pady=10, ipadx=8)
 
-        # Virtual keyboard toggle
         c2 = self._card(parent, "TASTIERA VIRTUALE")
         tk.Label(c2, text="Tastiera on-screen per scrivere\ncon i gesti",
                  font=("Segoe UI", 8), bg=Cfg.BG_CARD,
@@ -1009,7 +1216,6 @@ class Dashboard(tk.Tk):
             command=self._toggle_vk)
         self._vk_btn.pack(pady=10, ipadx=8)
 
-        # Gesture readout
         c3 = self._card(parent, "GESTI RILEVATI")
         row = tk.Frame(c3, bg=Cfg.BG_CARD)
         row.pack(fill="x", padx=10, pady=(2, 0))
@@ -1029,7 +1235,6 @@ class Dashboard(tk.Tk):
                  font=("Segoe UI", 9), bg=Cfg.BG_CARD, fg=Cfg.WARNING)
         self._act_lbl.pack(pady=(0, 8))
 
-        # Smoothing slider
         c4 = self._card(parent, "SENSIBILITÀ CURSORE")
         self._smooth_var = tk.DoubleVar(value=Cfg.SMOOTH)
         ttk.Scale(c4, from_=0.05, to=1.0, orient="horizontal",
@@ -1037,10 +1242,71 @@ class Dashboard(tk.Tk):
                   command=lambda v: setattr(Cfg, "SMOOTH", float(v))
                   ).pack(fill="x", padx=16, pady=(4, 10))
 
-        # Gesture guide
-        c5 = tk.Frame(parent, bg=Cfg.BG_MID)
-        c5.pack(fill="both", expand=True, padx=4, pady=4)
-        tk.Label(c5, text="GUIDA GESTI",
+    def _build_voice_tab(self, parent):
+        c1 = self._card(parent, "CONTROLLO VOCALE")
+
+        srow = tk.Frame(c1, bg=Cfg.BG_CARD)
+        srow.pack(fill="x", padx=10, pady=(0, 4))
+        tk.Label(srow, text="Status:", font=("Segoe UI", 9),
+                 bg=Cfg.BG_CARD, fg=Cfg.TEXT_DIM).pack(side="left")
+        self._voice_dot = tk.Label(srow, text="●", font=("Segoe UI", 9),
+                 bg=Cfg.BG_CARD, fg="#ff4444")
+        self._voice_dot.pack(side="left", padx=4)
+        self._voice_status_lbl = tk.Label(srow, text="OFFLINE",
+                 font=("Segoe UI", 9, "bold"), bg=Cfg.BG_CARD, fg=Cfg.TEXT_DIM)
+        self._voice_status_lbl.pack(side="left")
+
+        self._voice_btn = tk.Button(
+            c1, text="▶  ATTIVA VOCE",
+            font=("Segoe UI", 10, "bold"),
+            bg=Cfg.SUCCESS if self._voice.available else Cfg.TEXT_DIM,
+            fg="#000000",
+            relief="flat", bd=0,
+            cursor="hand2" if self._voice.available else "arrow",
+            padx=16, pady=8,
+            command=self._toggle_voice,
+            state="normal" if self._voice.available else "disabled")
+        self._voice_btn.pack(pady=8, ipadx=8)
+
+        if not self._voice.available:
+            tk.Label(c1,
+                     text="SpeechRecognition non trovato.\nEsegui: python install.py",
+                     font=("Segoe UI", 8), bg=Cfg.BG_CARD, fg=Cfg.WARNING,
+                     justify="center").pack(pady=(0, 8))
+        else:
+            tk.Label(c1,
+                     text="Lingua: Italiano (it-IT)\nParla chiaramente al microfono",
+                     font=("Segoe UI", 8), bg=Cfg.BG_CARD, fg=Cfg.TEXT_DIM,
+                     justify="center").pack(pady=(0, 8))
+
+        c2 = self._card(parent, "ULTIMO RICONOSCIUTO")
+        self._voice_last_lbl = tk.Label(
+            c2, text="—",
+            font=("Segoe UI", 9, "italic"), bg=Cfg.BG_CARD, fg=Cfg.TEXT,
+            wraplength=300, justify="center")
+        self._voice_last_lbl.pack(padx=8, pady=(0, 10))
+
+        c3 = self._card(parent, "CRONOLOGIA (ultimi 6)")
+        self._voice_log_labels = []
+        for _ in range(6):
+            lbl = tk.Label(c3, text="", font=("Consolas", 8),
+                           bg=Cfg.BG_CARD, fg=Cfg.TEXT_DIM, anchor="w")
+            lbl.pack(fill="x", padx=10, pady=1)
+            self._voice_log_labels.append(lbl)
+        tk.Label(c3, text="", bg=Cfg.BG_CARD).pack(pady=2)
+
+        c4 = self._card(parent, "ESEMPI COMANDI VOCALI")
+        for ex in ("apri youtube", "cerca meteo Milano",
+                   "crea cartella lavoro", "copia / incolla / salva",
+                   "screenshot", "zoom avanti / zoom indietro",
+                   "scrivi ciao mondo", "volume su / muto"):
+            tk.Label(c4, text=f"  • {ex}", font=("Segoe UI", 8),
+                     bg=Cfg.BG_CARD, fg=Cfg.TEXT_DIM, anchor="w"
+                     ).pack(fill="x", padx=4)
+        tk.Label(c4, text="", bg=Cfg.BG_CARD).pack(pady=3)
+
+    def _build_guide_tab(self, parent):
+        tk.Label(parent, text="GUIDA GESTI",
                  font=("Segoe UI", 9, "bold"),
                  bg=Cfg.BG_MID, fg=Cfg.TEXT_DIM).pack(pady=(8, 4))
 
@@ -1065,7 +1331,7 @@ class Dashboard(tk.Tk):
             ("🤏+🤏 entrambi pinch", "Zoom in/out",         Cfg.SUCCESS),
         ]
         for g, a, col in GUIDE:
-            r = tk.Frame(c5, bg=Cfg.BG_MID)
+            r = tk.Frame(parent, bg=Cfg.BG_MID)
             r.pack(fill="x", padx=8, pady=1)
             tk.Label(r, text=g, font=("Segoe UI", 8),
                      bg=Cfg.BG_MID, fg=col, width=22, anchor="w").pack(side="left")
@@ -1099,6 +1365,26 @@ class Dashboard(tk.Tk):
                 self._vk.deiconify()
                 self._vk_btn.configure(text="⌨  NASCONDI", bg=Cfg.ACCENT, fg=Cfg.TEXT)
 
+    def _toggle_voice(self):
+        if not self._voice.available:
+            return
+        if self._voice._running:
+            self._voice.stop()
+            self._voice_btn.configure(text="▶  ATTIVA VOCE", bg=Cfg.SUCCESS, fg="#000000")
+        else:
+            self._voice.start()
+            self._voice_btn.configure(text="⏹  DISATTIVA VOCE", bg=Cfg.ACCENT, fg=Cfg.TEXT)
+
+    def _on_voice_cmd(self, text: str, action):
+        self.after(0, self._update_voice_ui, text, action)
+
+    def _update_voice_ui(self, text: str, action):
+        icon = "✓" if action else "✗"
+        self._voice_last_lbl.configure(text=f'{icon} "{text}"')
+        texts = list(self._voice.history)
+        for i, lbl in enumerate(self._voice_log_labels):
+            lbl.configure(text=f"  {texts[i]}" if i < len(texts) else "")
+
     # ── main loop ─────────────────────────────────────────────
     def _start_camera(self):
         self._cam = CameraThread(self)
@@ -1109,8 +1395,10 @@ class Dashboard(tk.Tk):
             frame = self._cam.get_frame()
             if frame is not None:
                 h, w  = frame.shape[:2]
-                dw    = 630
-                small = cv2.resize(frame, (dw, int(h * dw / w)))
+                avail = self._left_panel.winfo_width()
+                dw    = max(300, avail - 16) if avail > 10 else 630
+                dh    = int(h * dw / w)
+                small = cv2.resize(frame, (dw, dh))
                 photo = ImageTk.PhotoImage(
                     Image.fromarray(cv2.cvtColor(small, cv2.COLOR_BGR2RGB)))
                 self._cam_lbl.configure(image=photo)
@@ -1124,11 +1412,27 @@ class Dashboard(tk.Tk):
                 self._hands_lbl.configure(
                     text=f"{'✋' * n}  {n} mano{'i' if n != 1 else ''}")
 
+        # Voice status polling
+        status = self._voice.status
+        _COL = {
+            "ASCOLTO":           Cfg.SUCCESS,
+            "RICONOSCIMENTO...": Cfg.WARNING,
+            "AVVIO...":          Cfg.BLUE,
+            "NON CAPITO":        Cfg.WARNING,
+            "OFFLINE":           "#ff4444",
+            "MIC ERR":           Cfg.ACCENT,
+        }
+        col = _COL.get(status, Cfg.TEXT_DIM)
+        self._voice_dot.configure(fg=col)
+        self._voice_status_lbl.configure(text=status, fg=col)
+        self._voice_hdr_lbl.configure(text=f"🎤 {status}", fg=col)
+
         self.after(Cfg.DWELL_MS, self._loop)
 
     def _on_close(self):
         if self._cam:
             self._cam.stop_capture()
+        self._voice.stop()
         self.destroy()
         sys.exit(0)
 
