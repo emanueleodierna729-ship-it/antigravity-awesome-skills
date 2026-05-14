@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
-Hand Gesture Control System
-Dashboard + webcam hand tracking + mouse emulation + virtual keyboard
-Requires: opencv-python mediapipe pyautogui numpy Pillow pynput
+Hand Gesture Control System  v2
+Dual-hand support · Landmark EMA smoothing · Temporal gesture stabilisation
 """
 
 import cv2
@@ -15,7 +14,7 @@ import threading
 import time
 import math
 import sys
-from collections import deque
+from collections import deque, Counter
 from PIL import Image, ImageTk
 
 try:
@@ -30,28 +29,41 @@ except ImportError:
 #  CONFIGURATION
 # ─────────────────────────────────────────────────────────────
 class Cfg:
-    CAMERA_IDX      = 0
-    CAM_W           = 640
-    CAM_H           = 480
-    MAX_HANDS       = 1
-    DETECT_CONF     = 0.72
-    TRACK_CONF      = 0.55
+    CAMERA_IDX   = 0
+    CAM_W        = 640
+    CAM_H        = 480
+    MAX_HANDS    = 2              # now supports two hands
+    DETECT_CONF  = 0.72
+    TRACK_CONF   = 0.55
 
-    SMOOTH          = 0.28      # EMA alpha  (lower → smoother, more lag)
-    PINCH_THRESH    = 0.042     # normalised distance → click
-    DRAG_THRESH     = 0.032     # movement before drag starts
-    SCROLL_SENS     = 18        # multiplier for scroll delta
-    CLICK_CD        = 0.30      # seconds between clicks
-    SHORTCUT_CD     = 0.70      # seconds between shortcut fires
-    DWELL_MS        = 30        # update interval (ms) for UI loop
+    # Mouse
+    SMOOTH       = 0.28           # EMA alpha for cursor position
+    PINCH_THRESH = 0.042
+    DRAG_THRESH  = 0.032
+    SCROLL_SENS  = 18
+    CLICK_CD     = 0.30
+    SHORTCUT_CD  = 0.70
+    DWELL_MS     = 30
 
-    SCR_W, SCR_H    = pyautogui.size()
+    # ── NEW: Landmark EMA smoothing ──
+    LMARK_ALPHA  = 0.40           # higher = more responsive, less smooth
 
-    # Webcam-to-screen mapping margins (avoid edges)
-    MARGIN_X        = 0.12
-    MARGIN_Y        = 0.12
+    # ── NEW: Temporal gesture stabilisation ──
+    GEST_WIN     = 6              # frames in voting window
+    GEST_THRESH  = 0.60           # fraction needed to confirm gesture
 
-    # ── Tkinter palette ──
+    # ── NEW: Swipe detection ──
+    SWIPE_VEL    = 0.65           # normalised units/second threshold
+
+    # ── NEW: Two-hand pinch zoom ──
+    ZOOM_DEAD    = 0.018          # dead-zone for wrist-distance delta
+    ZOOM_CD      = 0.12           # seconds between zoom steps
+
+    SCR_W, SCR_H = pyautogui.size()
+    MARGIN_X     = 0.12
+    MARGIN_Y     = 0.12
+
+    # Tkinter palette
     BG_DARK  = "#0d1117"
     BG_MID   = "#161b22"
     BG_CARD  = "#21262d"
@@ -61,19 +73,95 @@ class Cfg:
     TEXT     = "#e6edf3"
     TEXT_DIM = "#8b949e"
     BLUE     = "#58a6ff"
+    PURPLE   = "#bc8cff"
 
 
 # ─────────────────────────────────────────────────────────────
-#  HAND TRACKER  (MediaPipe wrapper)
+#  LANDMARK SMOOTHER  — per-hand EMA on raw 21-point positions
+# ─────────────────────────────────────────────────────────────
+class LandmarkSmoother:
+    def __init__(self, alpha: float = Cfg.LMARK_ALPHA):
+        self._a     = alpha
+        self._state: dict[str, list] = {}
+
+    def smooth(self, key: str, lm: list) -> list:
+        if key not in self._state:
+            self._state[key] = lm
+            return lm
+        a, prev = self._a, self._state[key]
+        out = [
+            (prev[i][0] + a * (lm[i][0] - prev[i][0]),
+             prev[i][1] + a * (lm[i][1] - prev[i][1]),
+             prev[i][2] + a * (lm[i][2] - prev[i][2]))
+            for i in range(len(lm))
+        ]
+        self._state[key] = out
+        return out
+
+    def reset(self, key: str | None = None):
+        if key:
+            self._state.pop(key, None)
+        else:
+            self._state.clear()
+
+
+# ─────────────────────────────────────────────────────────────
+#  GESTURE STABILISER  — temporal majority-vote over last N frames
+# ─────────────────────────────────────────────────────────────
+class GestureStabiliser:
+    def __init__(self, window: int = Cfg.GEST_WIN, thresh: float = Cfg.GEST_THRESH):
+        self._hist   = deque(maxlen=window)
+        self._thresh = thresh
+        self._win    = window
+        self.stable  = "NONE"
+
+    def feed(self, gesture: str) -> str:
+        self._hist.append(gesture)
+        if len(self._hist) < self._win:
+            return self.stable
+        top, cnt = Counter(self._hist).most_common(1)[0]
+        if cnt / self._win >= self._thresh:
+            self.stable = top
+        return self.stable
+
+    def reset(self):
+        self._hist.clear()
+        self.stable = "NONE"
+
+
+# ─────────────────────────────────────────────────────────────
+#  VELOCITY TRACKER  — wrist velocity for swipe detection
+# ─────────────────────────────────────────────────────────────
+class VelocityTracker:
+    def __init__(self, window: int = 6):
+        self._hist: deque[tuple] = deque(maxlen=window)
+
+    def push(self, x: float, y: float):
+        self._hist.append((x, y, time.perf_counter()))
+
+    def velocity(self) -> tuple[float, float]:
+        if len(self._hist) < 2:
+            return 0.0, 0.0
+        x0, y0, t0 = self._hist[0]
+        x1, y1, t1 = self._hist[-1]
+        dt = max(t1 - t0, 1e-6)
+        return (x1 - x0) / dt, (y1 - y0) / dt
+
+    def reset(self):
+        self._hist.clear()
+
+
+# ─────────────────────────────────────────────────────────────
+#  HAND TRACKER  (MediaPipe wrapper — now multi-hand)
 # ─────────────────────────────────────────────────────────────
 class HandTracker:
-    # landmark indices
+    # landmark indices (shared constants)
     WRIST      = 0
-    THUMB_TIP  = 4
-    INDEX_MCP  = 5;  INDEX_PIP  = 6;  INDEX_TIP  = 8
-    MIDDLE_MCP = 9;  MIDDLE_PIP = 10; MIDDLE_TIP = 12
-    RING_MCP   = 13; RING_PIP   = 14; RING_TIP   = 16
-    PINKY_MCP  = 17; PINKY_PIP  = 18; PINKY_TIP  = 20
+    THUMB_CMC  = 1;  THUMB_MCP  = 2;  THUMB_IP   = 3;  THUMB_TIP  = 4
+    INDEX_MCP  = 5;  INDEX_PIP  = 6;  INDEX_DIP  = 7;  INDEX_TIP  = 8
+    MIDDLE_MCP = 9;  MIDDLE_PIP = 10; MIDDLE_DIP = 11; MIDDLE_TIP = 12
+    RING_MCP   = 13; RING_PIP   = 14; RING_DIP   = 15; RING_TIP   = 16
+    PINKY_MCP  = 17; PINKY_PIP  = 18; PINKY_DIP  = 19; PINKY_TIP  = 20
 
     def __init__(self):
         mh = mp.solutions.hands
@@ -104,98 +192,112 @@ class HandTracker:
                 )
         return frame
 
-    def extract(self, results):
-        """Return (norm_lm, handedness_str) or (None, None)."""
+    def extract(self, results) -> list[tuple[list, str]]:
+        """Return list of (norm_lm, handedness_label) for every detected hand."""
         if not results.multi_hand_landmarks:
-            return None, None
-        lm = results.multi_hand_landmarks[0].landmark
-        norm = [(p.x, p.y, p.z) for p in lm]
-        hand = "Right"
-        if results.multi_handedness:
-            hand = results.multi_handedness[0].classification[0].label
-        return norm, hand
+            return []
+        out = []
+        for i, h in enumerate(results.multi_hand_landmarks):
+            lm    = [(p.x, p.y, p.z) for p in h.landmark]
+            label = "Right"
+            if results.multi_handedness and i < len(results.multi_handedness):
+                label = results.multi_handedness[i].classification[0].label
+            out.append((lm, label))
+        return out
 
     def close(self):
         self._hands.close()
 
 
 # ─────────────────────────────────────────────────────────────
-#  GESTURE RECOGNISER
+#  GESTURE CONSTANTS
 # ─────────────────────────────────────────────────────────────
-class Gesture:
-    NONE         = "NONE"
-    CURSOR       = "CURSOR"          # ☝ index only
-    PINCH        = "PINCH"           # 🤏 thumb+index close
-    PINCH_RIGHT  = "PINCH_RIGHT"     # 🤏 thumb+middle close
-    SCROLL       = "SCROLL"          # ✌ index+middle
-    COPY         = "COPY"            # 3 fingers up  → Ctrl+C
-    PASTE        = "PASTE"           # 4 fingers up  → Ctrl+V
-    THUMB_UP     = "THUMB_UP"        # 👍 thumb only  → double-click
-    ROCK         = "ROCK"            # 🤘 index+pinky → Ctrl+Z
-    FIST         = "FIST"            # ✊ all down    → drag / pause
-    OPEN_PALM    = "OPEN_PALM"       # 🖐 all up      → reset
-    SAVE         = "SAVE"            # 🤙 thumb+pinky → Ctrl+S
-    UNKNOWN      = "UNKNOWN"
+class G:
+    NONE        = "NONE"
+    CURSOR      = "CURSOR"         # ☝ index only           → move
+    PINCH       = "PINCH"          # 🤏 thumb+index close   → click/drag
+    PINCH_RIGHT = "PINCH_RIGHT"    # 🤏 thumb+middle close  → right-click
+    SCROLL      = "SCROLL"         # ✌ index+middle         → scroll
+    COPY        = "COPY"           # 3 fingers              → Ctrl+C
+    PASTE       = "PASTE"          # 4 fingers              → Ctrl+V
+    THUMB_UP    = "THUMB_UP"       # 👍 thumb only          → double-click
+    ROCK        = "ROCK"           # 🤘 index+pinky         → Ctrl+Z
+    SAVE        = "SAVE"           # 🤙 thumb+pinky         → Ctrl+S
+    FIST        = "FIST"           # ✊ all closed          → pause
+    OPEN_PALM   = "OPEN_PALM"      # 🖐 all open            → reset / swipe
+    SWIPE_L     = "SWIPE ←"        # open palm fast left    → Alt+Left
+    SWIPE_R     = "SWIPE →"        # open palm fast right   → Alt+Right
+    ZOOM_IN     = "ZOOM IN"        # ✌🤏 two-hand pinch out → Ctrl+scroll+
+    ZOOM_OUT    = "ZOOM OUT"       # two-hand pinch in      → Ctrl+scroll-
+    # modifier modes (left/non-dominant hand)
+    MOD_FREEZE  = "FREEZE"         # left OPEN_PALM → pause cursor
+    MOD_ZOOM    = "ZOOM MODE"      # left FIST      → right scroll = zoom
+    MOD_HSCROLL = "H-SCROLL"       # left SCROLL    → right cursor = hscroll
+    MOD_ALTTAB  = "ALT+TAB"        # left ROCK      → fire Alt+Tab
+    MOD_MIDDLE  = "MID.CLICK"      # left THUMB_UP  → next click = middle
+    UNKNOWN     = "UNKNOWN"
 
 
+# ─────────────────────────────────────────────────────────────
+#  GESTURE RECOGNISER  — single-hand, per-frame classification
+# ─────────────────────────────────────────────────────────────
 class GestureRecogniser:
-    T = HandTracker  # alias for indices
+    H = HandTracker  # alias
 
-    def fingers_up(self, lm):
-        """[thumb, index, middle, ring, pinky]  True = extended."""
-        # Thumb: horizontal comparison (camera is already flipped)
-        thumb = lm[self.T.THUMB_TIP][0] < lm[self.T.THUMB_TIP - 1][0]
+    def fingers_up(self, lm: list) -> list[bool]:
+        """Returns [thumb, index, middle, ring, pinky] True = extended."""
+        # Thumb: tip further left than IP when camera is already flipped
+        thumb = lm[self.H.THUMB_TIP][0] < lm[self.H.THUMB_IP][0]
         others = [
             lm[tip][1] < lm[pip][1]
             for tip, pip in (
-                (self.T.INDEX_TIP,  self.T.INDEX_PIP),
-                (self.T.MIDDLE_TIP, self.T.MIDDLE_PIP),
-                (self.T.RING_TIP,   self.T.RING_PIP),
-                (self.T.PINKY_TIP,  self.T.PINKY_PIP),
+                (self.H.INDEX_TIP,  self.H.INDEX_PIP),
+                (self.H.MIDDLE_TIP, self.H.MIDDLE_PIP),
+                (self.H.RING_TIP,   self.H.RING_PIP),
+                (self.H.PINKY_TIP,  self.H.PINKY_PIP),
             )
         ]
-        return [thumb] + others
+        return [thumb, *others]
 
-    def pinch(self, lm, a=HandTracker.THUMB_TIP, b=HandTracker.INDEX_TIP):
+    def pinch(self, lm: list, a: int, b: int) -> float:
         return math.hypot(lm[a][0] - lm[b][0], lm[a][1] - lm[b][1])
 
-    def classify(self, lm):
+    def classify(self, lm: list | None) -> str:
         if lm is None:
-            return Gesture.NONE
+            return G.NONE
 
         f = self.fingers_up(lm)
         thumb, idx, mid, ring, pinky = f
-        count = sum(f)
 
-        d_ti = self.pinch(lm, self.T.THUMB_TIP, self.T.INDEX_TIP)
-        d_tm = self.pinch(lm, self.T.THUMB_TIP, self.T.MIDDLE_TIP)
-        d_tp = self.pinch(lm, self.T.THUMB_TIP, self.T.PINKY_TIP)
+        d_ti = self.pinch(lm, self.H.THUMB_TIP, self.H.INDEX_TIP)
+        d_tm = self.pinch(lm, self.H.THUMB_TIP, self.H.MIDDLE_TIP)
+        d_tp = self.pinch(lm, self.H.THUMB_TIP, self.H.PINKY_TIP)
 
         if d_ti < Cfg.PINCH_THRESH:
-            return Gesture.PINCH
+            return G.PINCH
         if d_tm < Cfg.PINCH_THRESH * 1.2:
-            return Gesture.PINCH_RIGHT
+            return G.PINCH_RIGHT
         if d_tp < Cfg.PINCH_THRESH * 1.3 and not idx and not mid and not ring:
-            return Gesture.SAVE
+            return G.SAVE
 
         if idx and not mid and not ring and not pinky:
-            return Gesture.CURSOR
+            return G.CURSOR
         if idx and mid and not ring and not pinky:
-            return Gesture.SCROLL
+            return G.SCROLL
         if idx and mid and ring and not pinky and not thumb:
-            return Gesture.COPY
+            return G.COPY
         if idx and mid and ring and pinky and not thumb:
-            return Gesture.PASTE
+            return G.PASTE
         if thumb and not idx and not mid and not ring and not pinky:
-            return Gesture.THUMB_UP
+            return G.THUMB_UP
         if idx and pinky and not mid and not ring:
-            return Gesture.ROCK
-        if count == 0:
-            return Gesture.FIST
-        if count == 5:
-            return Gesture.OPEN_PALM
+            return G.ROCK
+        if sum(f) == 0:
+            return G.FIST
+        if sum(f) == 5:
+            return G.OPEN_PALM
 
-        return Gesture.UNKNOWN
+        return G.UNKNOWN
 
 
 # ─────────────────────────────────────────────────────────────
@@ -204,247 +306,414 @@ class GestureRecogniser:
 class SmoothMouse:
     def __init__(self):
         pyautogui.FAILSAFE = False
-        pyautogui.PAUSE = 0.0
+        pyautogui.PAUSE    = 0.0
+        self._mc  = _MouseCtrl() if PYNPUT_OK else None
+        self.cx   = Cfg.SCR_W // 2
+        self.cy   = Cfg.SCR_H // 2
+        self.drag = False
+        self._tc  = 0.0   # last click timestamp
+        self._ts  = 0.0   # last shortcut timestamp
+        self._tz  = 0.0   # last zoom timestamp
+        self._lk  = threading.Lock()
 
-        self._mc = _MouseCtrl() if PYNPUT_OK else None
-        self._kc = _KeyboardCtrl() if PYNPUT_OK else None
-
-        self.cx = Cfg.SCR_W // 2
-        self.cy = Cfg.SCR_H // 2
-        self.dragging = False
-        self._t_click = 0.0
-        self._t_short = 0.0
-        self._lock = threading.Lock()
-
-    # ── mapping ──
-    def _norm2scr(self, nx, ny):
+    def _n2s(self, nx: float, ny: float) -> tuple[int, int]:
         mx, my = Cfg.MARGIN_X, Cfg.MARGIN_Y
-        sx = (nx - mx) / max(1e-6, 1.0 - 2 * mx)
-        sy = (ny - my) / max(1e-6, 1.0 - 2 * my)
-        sx = max(0.0, min(1.0, 1.0 - sx))   # mirror-x
-        sy = max(0.0, min(1.0, sy))
-        return int(sx * Cfg.SCR_W), int(sy * Cfg.SCR_H)
+        sx = max(0.0, min(1.0, (nx - mx) / max(1e-6, 1 - 2 * mx)))
+        sy = max(0.0, min(1.0, (ny - my) / max(1e-6, 1 - 2 * my)))
+        return int((1.0 - sx) * Cfg.SCR_W), int(sy * Cfg.SCR_H)
 
-    # ── movement ──
-    def move(self, nx, ny):
-        tx, ty = self._norm2scr(nx, ny)
+    def move(self, nx: float, ny: float):
+        tx, ty = self._n2s(nx, ny)
         a = Cfg.SMOOTH
-        with self._lock:
+        with self._lk:
             self.cx = int(self.cx + a * (tx - self.cx))
             self.cy = int(self.cy + a * (ty - self.cy))
             pyautogui.moveTo(self.cx, self.cy)
 
-    # ── clicks ──
-    def _cd_ok(self, attr):
+    def _click_ok(self) -> bool:
         now = time.time()
-        if now - getattr(self, attr) < Cfg.CLICK_CD:
+        if now - self._tc < Cfg.CLICK_CD:
             return False
-        setattr(self, attr, now)
+        self._tc = now
         return True
 
     def left_click(self):
-        if not self._cd_ok("_t_click"):
+        if not self._click_ok():
             return
-        if PYNPUT_OK:
-            from pynput.mouse import Button
-            self._mc.click(Button.left)
-        else:
-            pyautogui.click()
+        (self._mc.click(Button.left) if PYNPUT_OK
+         else pyautogui.click())
 
     def right_click(self):
-        if not self._cd_ok("_t_click"):
+        if not self._click_ok():
             return
-        if PYNPUT_OK:
-            from pynput.mouse import Button
-            self._mc.click(Button.right)
-        else:
-            pyautogui.rightClick()
+        (self._mc.click(Button.right) if PYNPUT_OK
+         else pyautogui.rightClick())
+
+    def middle_click(self):
+        if not self._click_ok():
+            return
+        (self._mc.click(Button.middle) if PYNPUT_OK
+         else pyautogui.middleClick())
 
     def double_click(self):
-        if not self._cd_ok("_t_click"):
+        if not self._click_ok():
             return
-        if PYNPUT_OK:
-            from pynput.mouse import Button
-            self._mc.click(Button.left, count=2)
-        else:
-            pyautogui.doubleClick()
+        (self._mc.click(Button.left, count=2) if PYNPUT_OK
+         else pyautogui.doubleClick())
 
-    # ── scroll ──
-    def scroll(self, dy):
+    def scroll(self, dy: float):
         if PYNPUT_OK:
             self._mc.scroll(0, dy)
         else:
             pyautogui.scroll(int(dy * 3))
 
-    # ── drag ──
-    def start_drag(self):
-        if self.dragging:
-            return
-        self.dragging = True
+    def hscroll(self, dx: float):
         if PYNPUT_OK:
-            from pynput.mouse import Button
-            self._mc.press(Button.left)
+            self._mc.scroll(dx, 0)
         else:
-            pyautogui.mouseDown()
+            try:
+                pyautogui.hscroll(int(dx * 3))
+            except Exception:
+                pass
 
-    def stop_drag(self):
-        if not self.dragging:
-            return
-        self.dragging = False
-        if PYNPUT_OK:
-            from pynput.mouse import Button
-            self._mc.release(Button.left)
-        else:
-            pyautogui.mouseUp()
-
-    # ── keyboard shortcuts ──
-    def hotkey(self, *keys):
+    def zoom(self, direction: int) -> bool:
+        """Ctrl+scroll zoom. direction +1 = in, -1 = out."""
         now = time.time()
-        if now - self._t_short < Cfg.SHORTCUT_CD:
+        if now - self._tz < Cfg.ZOOM_CD:
             return False
-        self._t_short = now
+        self._tz = now
+        try:
+            pyautogui.keyDown("ctrl")
+            self._mc.scroll(0, direction) if PYNPUT_OK else pyautogui.scroll(direction * 3)
+            pyautogui.keyUp("ctrl")
+        except Exception:
+            try:
+                pyautogui.keyUp("ctrl")
+            except Exception:
+                pass
+        return True
+
+    def hotkey(self, *keys) -> bool:
+        now = time.time()
+        if now - self._ts < Cfg.SHORTCUT_CD:
+            return False
+        self._ts = now
         try:
             pyautogui.hotkey(*keys)
         except Exception:
             pass
         return True
 
-    def press_key(self, key):
+    def press_key(self, key: str):
         try:
             pyautogui.press(key)
         except Exception:
             pass
 
+    def start_drag(self):
+        if self.drag:
+            return
+        self.drag = True
+        (self._mc.press(Button.left) if PYNPUT_OK else pyautogui.mouseDown())
+
+    def stop_drag(self):
+        if not self.drag:
+            return
+        self.drag = False
+        (self._mc.release(Button.left) if PYNPUT_OK else pyautogui.mouseUp())
+
 
 # ─────────────────────────────────────────────────────────────
-#  GESTURE → ACTION PROCESSOR
+#  DUAL-HAND PROCESSOR
+#  Dominant hand (wrist.x > 0.5 after flip) = cursor / action
+#  Modifier hand (wrist.x < 0.5)            = mode / shortcut
 # ─────────────────────────────────────────────────────────────
-class GestureProcessor:
+class DualHandProcessor:
     def __init__(self, mouse: SmoothMouse):
-        self.mouse = mouse
-        self.rec = GestureRecogniser()
+        self.mouse   = mouse
+        self._smoother = LandmarkSmoother(Cfg.LMARK_ALPHA)
+        self._rec    = GestureRecogniser()
+        self._stab   = {"dom": GestureStabiliser(), "mod": GestureStabiliser()}
+        self._vel    = {"dom": VelocityTracker(),   "mod": VelocityTracker()}
 
-        self._pinching      = False
-        self._pinch_right   = False
-        self._drag_started  = False
-        self._drag_origin   = (0.0, 0.0)
-        self._scroll_ref    = None
-        self._t_shortcut    = 0.0
+        # action state
+        self._pinch      = False
+        self._pright     = False
+        self._dragging   = False
+        self._drag_orig  = (0.0, 0.0)
+        self._scroll_ref = None
+        self._zoom_ref   = None
+        self._mod_mode   = None   # current modifier from non-dominant hand
+        self._mid_armed  = False  # next click = middle click
 
-    def process(self, lm) -> tuple:
-        """Return (gesture_name, action_label_or_empty)."""
-        gesture = self.rec.classify(lm)
-        action  = ""
+    # ── public entry point ────────────────────────────────────
+    def process(self, hands: list) -> tuple[str, str, str]:
+        """
+        hands: list of (lm, handedness_str)
+        Returns (dom_gesture, mod_gesture, action_label)
+        """
+        dom_lm, mod_lm = self._assign_roles(hands)
 
-        ix = lm[HandTracker.INDEX_TIP][0] if lm else 0.5
-        iy = lm[HandTracker.INDEX_TIP][1] if lm else 0.5
+        dom_lm = self._prep("dom", dom_lm)
+        mod_lm = self._prep("mod", mod_lm)
 
-        m = self.mouse
+        raw_dom = self._rec.classify(dom_lm)
+        raw_mod = self._rec.classify(mod_lm)
 
-        if gesture == Gesture.CURSOR:
-            self._reset_drag()
-            m.move(ix, iy)
-            self._pinching    = False
-            self._pinch_right = False
-            self._scroll_ref  = None
+        dom_g = self._stab["dom"].feed(raw_dom) if dom_lm else G.NONE
+        mod_g = self._stab["mod"].feed(raw_mod) if mod_lm else G.NONE
 
-        elif gesture == Gesture.PINCH:
-            if not self._pinching:
-                self._pinching    = True
-                self._drag_origin = (ix, iy)
-                self._drag_started = False
+        if dom_lm:
+            self._vel["dom"].push(dom_lm[HandTracker.WRIST][0],
+                                  dom_lm[HandTracker.WRIST][1])
+        if mod_lm:
+            self._vel["mod"].push(mod_lm[HandTracker.WRIST][0],
+                                  mod_lm[HandTracker.WRIST][1])
+
+        action = ""
+
+        # Two-hand gesture first (takes priority)
+        if dom_lm and mod_lm:
+            action = self._two_hands(dom_lm, mod_lm, dom_g, mod_g)
+            if action:
+                return dom_g, mod_g, action
+
+        # Update modifier mode
+        self._update_mod(mod_g)
+
+        # Dominant hand action
+        if dom_lm:
+            action = self._dominant(dom_lm, dom_g)
+        else:
+            self._reset_all()
+
+        return dom_g, mod_g, action
+
+    # ── role assignment ───────────────────────────────────────
+    def _assign_roles(self, hands: list) -> tuple:
+        if not hands:
+            return None, None
+        if len(hands) == 1:
+            return hands[0][0], None
+        # Higher wrist.x → right side of flipped frame → dominant (right) hand
+        s = sorted(hands, key=lambda h: h[0][HandTracker.WRIST][0], reverse=True)
+        return s[0][0], s[1][0]
+
+    def _prep(self, key: str, lm):
+        if lm is None:
+            self._smoother.reset(key)
+            self._stab[key].reset()
+            self._vel[key].reset()
+            return None
+        return self._smoother.smooth(key, lm)
+
+    # ── two-hand gestures ─────────────────────────────────────
+    def _two_hands(self, dom: list, mod: list, dg: str, mg: str) -> str:
+        # Pinch-to-zoom: both hands PINCH, track wrist separation
+        if dg == G.PINCH and mg == G.PINCH:
+            d = math.hypot(dom[0][0] - mod[0][0], dom[0][1] - mod[0][1])
+            if self._zoom_ref is None:
+                self._zoom_ref = d
             else:
-                dx = abs(ix - self._drag_origin[0])
-                dy = abs(iy - self._drag_origin[1])
-                if dx > Cfg.DRAG_THRESH or dy > Cfg.DRAG_THRESH:
-                    if not self._drag_started:
-                        self._drag_started = True
-                        m.start_drag()
-                if self._drag_started:
-                    m.move(ix, iy)
-            self._pinch_right = False
-            self._scroll_ref  = None
+                delta = d - self._zoom_ref
+                if delta > Cfg.ZOOM_DEAD:
+                    if self.mouse.zoom(1):
+                        self._zoom_ref = d
+                        return G.ZOOM_IN
+                elif delta < -Cfg.ZOOM_DEAD:
+                    if self.mouse.zoom(-1):
+                        self._zoom_ref = d
+                        return G.ZOOM_OUT
+            return G.ZOOM_IN if d > (self._zoom_ref or d) else ""
+        else:
+            self._zoom_ref = None
+        return ""
 
-        elif gesture == Gesture.PINCH_RIGHT:
-            if not self._pinch_right:
-                self._pinch_right = True
-                m.right_click()
-                action = "RIGHT CLICK"
-            self._reset_pinch()
-            self._scroll_ref = None
+    # ── modifier mode (non-dominant hand) ─────────────────────
+    def _update_mod(self, mg: str):
+        mapping = {
+            G.OPEN_PALM: G.MOD_FREEZE,
+            G.FIST:      G.MOD_ZOOM,
+            G.SCROLL:    G.MOD_HSCROLL,
+            G.ROCK:      G.MOD_ALTTAB,
+            G.THUMB_UP:  G.MOD_MIDDLE,
+        }
+        prev = self._mod_mode
+        self._mod_mode = mapping.get(mg)
 
-        elif gesture == Gesture.SCROLL:
+        # Fire Alt+Tab once when modifier is raised
+        if self._mod_mode == G.MOD_ALTTAB and prev != G.MOD_ALTTAB:
+            self.mouse.hotkey("alt", "tab")
+        # Arm middle click
+        if self._mod_mode == G.MOD_MIDDLE and prev != G.MOD_MIDDLE:
+            self._mid_armed = True
+
+    # ── dominant hand main processing ─────────────────────────
+    def _dominant(self, lm: list, g: str) -> str:
+        m  = self.mouse
+        ix = lm[HandTracker.INDEX_TIP][0]
+        iy = lm[HandTracker.INDEX_TIP][1]
+
+        # Modifier overrides
+        if self._mod_mode == G.MOD_FREEZE:
+            self._reset_drag(); self._reset_pinch()
+            return G.MOD_FREEZE
+
+        if self._mod_mode == G.MOD_ZOOM and g == G.SCROLL:
             self._reset_drag()
             if self._scroll_ref is None:
                 self._scroll_ref = iy
             else:
-                delta = (self._scroll_ref - iy) * Cfg.SCROLL_SENS
-                if abs(delta) > 0.05:
-                    m.scroll(delta)
+                dy = (self._scroll_ref - iy) * Cfg.SCROLL_SENS
+                if abs(dy) > 0.05:
+                    m.zoom(1 if dy > 0 else -1)
+                    self._scroll_ref = iy
+            return G.MOD_ZOOM
+
+        if self._mod_mode == G.MOD_HSCROLL and g == G.CURSOR:
+            self._reset_drag()
+            if self._scroll_ref is None:
+                self._scroll_ref = ix
+            else:
+                dx = (ix - self._scroll_ref) * Cfg.SCROLL_SENS
+                if abs(dx) > 0.05:
+                    m.hscroll(dx)
+                    self._scroll_ref = ix
+            return G.MOD_HSCROLL
+
+        # Swipe detection on open palm (velocity-based)
+        if g == G.OPEN_PALM:
+            vx, _ = self._vel["dom"].velocity()
+            if vx < -Cfg.SWIPE_VEL:
+                if m.hotkey("alt", "left"):
+                    return G.SWIPE_L
+            elif vx > Cfg.SWIPE_VEL:
+                if m.hotkey("alt", "right"):
+                    return G.SWIPE_R
+            self._reset_drag(); self._reset_pinch()
+            self._scroll_ref = None
+            return ""
+
+        # ── core single-hand gestures ──
+        if g == G.CURSOR:
+            self._reset_drag()
+            m.move(ix, iy)
+            self._reset_pinch()
+            self._scroll_ref = None
+
+        elif g == G.PINCH:
+            if self._mid_armed:
+                if not self._pinch:
+                    self._pinch = True
+                    m.middle_click()
+                    self._mid_armed = False
+                    return G.MOD_MIDDLE
+            if not self._pinch:
+                self._pinch      = True
+                self._drag_orig  = (ix, iy)
+                self._dragging   = False
+            else:
+                dx = abs(ix - self._drag_orig[0])
+                dy = abs(iy - self._drag_orig[1])
+                if dx > Cfg.DRAG_THRESH or dy > Cfg.DRAG_THRESH:
+                    if not self._dragging:
+                        self._dragging = True
+                        m.start_drag()
+                if self._dragging:
+                    m.move(ix, iy)
+            self._pright     = False
+            self._scroll_ref = None
+
+        elif g == G.PINCH_RIGHT:
+            if not self._pright:
+                self._pright = True
+                m.right_click()
+                self._reset_pinch_soft()
+                return "RIGHT CLICK"
+            self._scroll_ref = None
+
+        elif g == G.SCROLL:
+            self._reset_drag()
+            if self._scroll_ref is None:
+                self._scroll_ref = iy
+            else:
+                dy = (self._scroll_ref - iy) * Cfg.SCROLL_SENS
+                if abs(dy) > 0.05:
+                    m.scroll(dy)
                     self._scroll_ref = iy
             self._reset_pinch()
 
-        elif gesture == Gesture.THUMB_UP:
+        elif g == G.THUMB_UP:
             self._reset_drag()
-            if m.double_click.__func__(m) is not False:
-                action = "DOUBLE CLICK"
+            m.double_click()
             self._reset_pinch()
             self._scroll_ref = None
+            return "DOUBLE CLICK"
 
-        elif gesture == Gesture.COPY:
+        elif g == G.COPY:
             self._reset_drag()
             if m.hotkey("ctrl", "c"):
-                action = "COPY  Ctrl+C"
-            self._reset_pinch()
+                self._reset_pinch()
+                return "COPY  Ctrl+C"
 
-        elif gesture == Gesture.PASTE:
+        elif g == G.PASTE:
             self._reset_drag()
             if m.hotkey("ctrl", "v"):
-                action = "PASTE  Ctrl+V"
-            self._reset_pinch()
+                self._reset_pinch()
+                return "PASTE  Ctrl+V"
 
-        elif gesture == Gesture.ROCK:
+        elif g == G.ROCK:
             self._reset_drag()
             if m.hotkey("ctrl", "z"):
-                action = "UNDO  Ctrl+Z"
-            self._reset_pinch()
+                self._reset_pinch()
+                return "UNDO  Ctrl+Z"
 
-        elif gesture == Gesture.SAVE:
+        elif g == G.SAVE:
             self._reset_drag()
             if m.hotkey("ctrl", "s"):
-                action = "SAVE  Ctrl+S"
-            self._reset_pinch()
+                self._reset_pinch()
+                return "SAVE  Ctrl+S"
 
-        elif gesture == Gesture.FIST:
-            self._reset_drag()
-            self._reset_pinch()
-            self._scroll_ref = None
-
-        elif gesture == Gesture.OPEN_PALM:
+        elif g == G.FIST:
             self._reset_drag()
             self._reset_pinch()
             self._scroll_ref = None
 
         else:
-            # Gesture ended / unknown → finalise pending click
-            if self._pinching and not self._drag_started:
+            # Gesture ended / transitional → finalise pending click
+            if self._pinch and not self._dragging:
                 m.left_click()
-                action = "LEFT CLICK"
+                self._reset_drag()
+                self._reset_pinch()
+                self._scroll_ref = None
+                return "LEFT CLICK"
             self._reset_drag()
             self._reset_pinch()
             self._scroll_ref = None
 
-        return gesture, action
+        return ""
 
+    # ── helpers ───────────────────────────────────────────────
     def _reset_pinch(self):
-        self._pinching     = False
-        self._pinch_right  = False
+        self._pinch  = False
+        self._pright = False
+
+    def _reset_pinch_soft(self):
+        self._pinch = False
 
     def _reset_drag(self):
-        if self._drag_started:
+        if self._dragging:
             self.mouse.stop_drag()
-            self._drag_started = False
-        self._pinching = False
+            self._dragging = False
+        self._pinch = False
+
+    def _reset_all(self):
+        self._reset_drag()
+        self._reset_pinch()
+        self._scroll_ref = None
+        self._zoom_ref   = None
+        self._mod_mode   = None
+        self._mid_armed  = False
 
 
 # ─────────────────────────────────────────────────────────────
@@ -464,7 +733,7 @@ class VirtualKeyboard(tk.Toplevel):
         "Enter":"return","Shift":"shift","Shift↑":"shift","Ctrl":"ctrl",
         "Ctrl↗":"ctrl","Alt":"alt","Alt↗":"alt","Win":"super",
         "          Space          ":"space",
-        **{f"F{n}":f"f{n}" for n in range(1, 13)},
+        **{f"F{n}": f"f{n}" for n in range(1, 13)},
     }
     _WIDE = {"Back","Tab","Caps","Enter","Shift","Shift↑","Ctrl","Ctrl↗",
              "Alt","Alt↗","Win","          Space          "}
@@ -474,17 +743,14 @@ class VirtualKeyboard(tk.Toplevel):
         self._mouse   = mouse
         self._shift   = False
         self._ctrl    = False
-        self._buttons = {}
+        self._buttons: dict[str, tk.Button] = {}
 
-        self.title("Virtual Keyboard")
+        self.title("Tastiera Virtuale")
         self.configure(bg=Cfg.BG_DARK)
         self.attributes("-topmost", True)
         self.resizable(False, False)
-
-        sw = parent.winfo_screenwidth()
         sh = parent.winfo_screenheight()
         self.geometry(f"+0+{sh - 240}")
-
         self._build()
         self.protocol("WM_DELETE_WINDOW", self.withdraw)
 
@@ -507,33 +773,31 @@ class VirtualKeyboard(tk.Toplevel):
                 btn.pack(side="left", padx=1, pady=1, ipady=4)
                 self._buttons[key] = btn
 
-    def _press(self, key):
+    def _press(self, key: str):
         mapped = self._MAP.get(key, key)
         if mapped in ("shift", "ctrl"):
             if mapped == "shift":
                 self._shift = not self._shift
-                col = Cfg.ACCENT if self._shift else Cfg.BG_CARD
                 for k in ("Shift", "Shift↑"):
                     if k in self._buttons:
-                        self._buttons[k].configure(bg=col)
+                        self._buttons[k].configure(
+                            bg=Cfg.ACCENT if self._shift else Cfg.BG_CARD)
             else:
                 self._ctrl = not self._ctrl
-                col = Cfg.ACCENT if self._ctrl else Cfg.BG_CARD
                 for k in ("Ctrl", "Ctrl↗"):
                     if k in self._buttons:
-                        self._buttons[k].configure(bg=col)
+                        self._buttons[k].configure(
+                            bg=Cfg.ACCENT if self._ctrl else Cfg.BG_CARD)
             return
 
         chain = []
         if self._ctrl:
-            chain.append("ctrl")
-            self._ctrl = False
+            chain.append("ctrl"); self._ctrl = False
             for k in ("Ctrl", "Ctrl↗"):
                 if k in self._buttons:
                     self._buttons[k].configure(bg=Cfg.BG_CARD)
         if self._shift:
-            chain.append("shift")
-            self._shift = False
+            chain.append("shift"); self._shift = False
             for k in ("Shift", "Shift↑"):
                 if k in self._buttons:
                     self._buttons[k].configure(bg=Cfg.BG_CARD)
@@ -549,7 +813,7 @@ class VirtualKeyboard(tk.Toplevel):
 
 
 # ─────────────────────────────────────────────────────────────
-#  CAMERA PROCESSING THREAD
+#  CAMERA THREAD
 # ─────────────────────────────────────────────────────────────
 class CameraThread(threading.Thread):
     def __init__(self, app):
@@ -558,9 +822,11 @@ class CameraThread(threading.Thread):
         self._running  = False
         self._flock    = threading.Lock()
         self.frame     = None
-        self.gesture   = Gesture.NONE
+        self.dom_g     = G.NONE
+        self.mod_g     = G.NONE
         self.action    = ""
         self.fps       = 0.0
+        self.n_hands   = 0
 
     def start_capture(self):
         self._running = True
@@ -575,9 +841,10 @@ class CameraThread(threading.Thread):
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, Cfg.CAM_H)
 
         tracker   = HandTracker()
-        processor = GestureProcessor(self.app.mouse)
+        processor = DualHandProcessor(self.app.mouse)
 
-        t0, fc = time.time(), 0
+        t0 = time.perf_counter()
+        fc = 0
 
         while self._running:
             ok, frame = cap.read()
@@ -588,23 +855,25 @@ class CameraThread(threading.Thread):
             frame = cv2.flip(frame, 1)
 
             if self.app.hand_active:
-                results       = tracker.process(frame)
-                frame         = tracker.annotate(frame, results)
-                lm, handedness = tracker.extract(results)
-                gesture, action = processor.process(lm)
-                self.gesture = gesture
-                self.action  = action
-                self._draw_hud(frame, gesture, action, lm)
+                results = tracker.process(frame)
+                frame   = tracker.annotate(frame, results)
+                hands   = tracker.extract(results)
+                self.n_hands = len(hands)
+                dom_g, mod_g, action = processor.process(hands)
+                self.dom_g  = dom_g
+                self.mod_g  = mod_g
+                self.action = action
+                self._draw_hud(frame, dom_g, mod_g, action, hands)
             else:
-                self.gesture = Gesture.NONE
-                self.action  = ""
+                self.dom_g = self.mod_g = G.NONE
+                self.action = ""
+                self.n_hands = 0
 
-            # FPS counter
             fc += 1
-            elapsed = time.time() - t0
+            elapsed = time.perf_counter() - t0
             if elapsed >= 1.0:
                 self.fps = fc / elapsed
-                fc, t0 = 0, time.time()
+                fc, t0 = 0, time.perf_counter()
 
             cv2.putText(frame, f"FPS {self.fps:.0f}", (8, 26),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.65, (80, 220, 80), 2)
@@ -620,31 +889,39 @@ class CameraThread(threading.Thread):
             return None if self.frame is None else self.frame.copy()
 
     @staticmethod
-    def _draw_hud(frame, gesture, action, lm):
+    def _draw_hud(frame, dom_g, mod_g, action, hands):
         h, w = frame.shape[:2]
-        label_color = (80, 220, 80) if gesture not in (Gesture.NONE, Gesture.UNKNOWN) else (120, 120, 120)
-        cv2.putText(frame, gesture, (8, 55),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, label_color, 2)
 
+        # Dominant gesture label
+        col = (80, 220, 80) if dom_g not in (G.NONE, G.UNKNOWN) else (100, 100, 100)
+        cv2.putText(frame, f"DOM: {dom_g}", (8, 55),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, col, 2)
+
+        # Modifier gesture label (second hand)
+        if mod_g not in (G.NONE, G.UNKNOWN, ""):
+            cv2.putText(frame, f"MOD: {mod_g}", (8, 82),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.65, (180, 120, 255), 2)
+
+        # Action feedback centred
         if action:
-            tw, _ = cv2.getTextSize(action, cv2.FONT_HERSHEY_SIMPLEX, 0.9, 2)[:2]
-            cx = (w - tw[0]) // 2 if isinstance(tw, tuple) else w // 4
-            cv2.putText(frame, action, (cx, h - 20),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 220, 220), 2)
+            (tw, _), _ = cv2.getTextSize(action, cv2.FONT_HERSHEY_SIMPLEX, 0.85, 2)
+            cx = max(0, (w - tw) // 2)
+            cv2.putText(frame, action, (cx, h - 18),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.85, (0, 220, 220), 2)
 
-        if gesture == Gesture.CURSOR and lm:
-            ix = int((1 - lm[HandTracker.INDEX_TIP][0]) * w)
-            iy = int(lm[HandTracker.INDEX_TIP][1] * h)
-            cv2.circle(frame, (ix, iy), 14, (0, 255, 255), 2)
-            cv2.circle(frame, (ix, iy), 4,  (0, 255, 255), -1)
-
-        if gesture == Gesture.PINCH:
-            cv2.putText(frame, "DRAG/CLICK", (w - 150, 55),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.65, (0, 80, 255), 2)
+        # Cursor ring on dominant index tip
+        if dom_g in (G.CURSOR, G.PINCH) and hands:
+            # find dominant hand (highest wrist.x)
+            dom_lm = max(hands, key=lambda hd: hd[0][HandTracker.WRIST][0])[0]
+            ix = int((1 - dom_lm[HandTracker.INDEX_TIP][0]) * w)
+            iy = int(dom_lm[HandTracker.INDEX_TIP][1] * h)
+            colour = (0, 80, 255) if dom_g == G.PINCH else (0, 255, 255)
+            cv2.circle(frame, (ix, iy), 14, colour, 2)
+            cv2.circle(frame, (ix, iy), 4,  colour, -1)
 
 
 # ─────────────────────────────────────────────────────────────
-#  DASHBOARD  (Tkinter)
+#  DASHBOARD
 # ─────────────────────────────────────────────────────────────
 class Dashboard(tk.Tk):
     def __init__(self):
@@ -659,48 +936,43 @@ class Dashboard(tk.Tk):
         self._start_camera()
         self._loop()
 
-    # ── window setup ──────────────────────────────────────────
     def _setup_window(self):
-        self.title("Hand Gesture Control  ✋")
+        self.title("Hand Gesture Control  ✋  v2")
         self.configure(bg=Cfg.BG_DARK)
-        self.geometry("1060x660")
+        self.geometry("1080x680")
         self.minsize(900, 580)
         self.protocol("WM_DELETE_WINDOW", self._on_close)
 
-    # ── UI construction ───────────────────────────────────────
     def _build_ui(self):
         # Header
         hdr = tk.Frame(self, bg=Cfg.BG_DARK)
         hdr.pack(fill="x", padx=12, pady=(10, 4))
-
-        tk.Label(hdr, text="✋  Hand Gesture Control",
+        tk.Label(hdr, text="✋  Hand Gesture Control  v2",
                  font=("Segoe UI", 19, "bold"),
                  bg=Cfg.BG_DARK, fg=Cfg.TEXT).pack(side="left")
-
         self._status_lbl = tk.Label(hdr, text="●  OFFLINE",
                  font=("Segoe UI", 11), bg=Cfg.BG_DARK, fg="#ff4444")
         self._status_lbl.pack(side="right", padx=16)
+        self._hands_lbl = tk.Label(hdr, text="",
+                 font=("Segoe UI", 10), bg=Cfg.BG_DARK, fg=Cfg.TEXT_DIM)
+        self._hands_lbl.pack(side="right", padx=4)
 
-        sep = tk.Frame(self, bg=Cfg.BG_CARD, height=1)
-        sep.pack(fill="x", padx=12)
+        tk.Frame(self, bg=Cfg.BG_CARD, height=1).pack(fill="x", padx=12)
 
-        # Body
         body = tk.Frame(self, bg=Cfg.BG_DARK)
         body.pack(fill="both", expand=True, padx=12, pady=8)
 
-        # Left – camera
+        # Camera panel
         left = tk.Frame(body, bg=Cfg.BG_MID)
         left.pack(side="left", fill="both", expand=True, padx=(0, 6))
-
         tk.Label(left, text="CAMERA FEED",
                  font=("Segoe UI", 8, "bold"),
                  bg=Cfg.BG_MID, fg=Cfg.TEXT_DIM).pack(pady=(8, 2))
-
         self._cam_lbl = tk.Label(left, bg="#000000")
         self._cam_lbl.pack(padx=8, pady=(0, 8))
 
-        # Right – controls
-        right = tk.Frame(body, bg=Cfg.BG_DARK, width=310)
+        # Control panel
+        right = tk.Frame(body, bg=Cfg.BG_DARK, width=320)
         right.pack(side="right", fill="y")
         right.pack_propagate(False)
         self._build_controls(right)
@@ -713,84 +985,94 @@ class Dashboard(tk.Tk):
         return f
 
     def _build_controls(self, parent):
-        # ─ Hand Control toggle ─
-        c1 = self._card(parent, "HAND CONTROL")
-        tk.Label(c1, text="Attiva il riconoscimento mani/dita\nper controllare il cursore",
-                 font=("Segoe UI", 8), bg=Cfg.BG_CARD, fg=Cfg.TEXT_DIM,
-                 justify="center").pack()
+        # Hand control toggle
+        c1 = self._card(parent, "CONTROLLO MANI")
+        tk.Label(c1, text="Riconosce entrambe le mani:\ndestra = cursore  |  sinistra = modificatore",
+                 font=("Segoe UI", 8), bg=Cfg.BG_CARD,
+                 fg=Cfg.TEXT_DIM, justify="center").pack()
         self._hand_btn = tk.Button(
             c1, text="▶  ATTIVA",
-            font=("Segoe UI", 11, "bold"),
-            bg=Cfg.SUCCESS, fg="#000000",
-            relief="flat", bd=0, cursor="hand2",
-            padx=16, pady=8,
+            font=("Segoe UI", 11, "bold"), bg=Cfg.SUCCESS, fg="#000000",
+            relief="flat", bd=0, cursor="hand2", padx=16, pady=8,
             command=self._toggle_hand)
         self._hand_btn.pack(pady=10, ipadx=8)
 
-        # ─ Virtual Keyboard toggle ─
+        # Virtual keyboard toggle
         c2 = self._card(parent, "TASTIERA VIRTUALE")
-        tk.Label(c2, text="Mostra/nascondi la tastiera\non-screen per scrivere",
-                 font=("Segoe UI", 8), bg=Cfg.BG_CARD, fg=Cfg.TEXT_DIM,
-                 justify="center").pack()
+        tk.Label(c2, text="Tastiera on-screen per scrivere\ncon i gesti",
+                 font=("Segoe UI", 8), bg=Cfg.BG_CARD,
+                 fg=Cfg.TEXT_DIM, justify="center").pack()
         self._vk_btn = tk.Button(
             c2, text="⌨  MOSTRA TASTIERA",
-            font=("Segoe UI", 10, "bold"),
-            bg=Cfg.BLUE, fg="#000000",
-            relief="flat", bd=0, cursor="hand2",
-            padx=16, pady=8,
+            font=("Segoe UI", 10, "bold"), bg=Cfg.BLUE, fg="#000000",
+            relief="flat", bd=0, cursor="hand2", padx=16, pady=8,
             command=self._toggle_vk)
         self._vk_btn.pack(pady=10, ipadx=8)
 
-        # ─ Current gesture ─
-        c3 = self._card(parent, "GESTO RILEVATO")
-        self._gest_lbl = tk.Label(c3, text="—",
-                 font=("Segoe UI", 16, "bold"),
-                 bg=Cfg.BG_CARD, fg=Cfg.ACCENT)
-        self._gest_lbl.pack(pady=(2, 4))
-        self._action_lbl = tk.Label(c3, text="",
-                 font=("Segoe UI", 9),
-                 bg=Cfg.BG_CARD, fg=Cfg.WARNING)
-        self._action_lbl.pack(pady=(0, 8))
+        # Gesture readout
+        c3 = self._card(parent, "GESTI RILEVATI")
+        row = tk.Frame(c3, bg=Cfg.BG_CARD)
+        row.pack(fill="x", padx=10, pady=(2, 0))
+        tk.Label(row, text="DOM:", font=("Segoe UI", 9),
+                 bg=Cfg.BG_CARD, fg=Cfg.TEXT_DIM, width=5, anchor="w").pack(side="left")
+        self._dom_lbl = tk.Label(row, text="—",
+                 font=("Segoe UI", 13, "bold"), bg=Cfg.BG_CARD, fg=Cfg.ACCENT)
+        self._dom_lbl.pack(side="left")
+        row2 = tk.Frame(c3, bg=Cfg.BG_CARD)
+        row2.pack(fill="x", padx=10, pady=(2, 4))
+        tk.Label(row2, text="MOD:", font=("Segoe UI", 9),
+                 bg=Cfg.BG_CARD, fg=Cfg.TEXT_DIM, width=5, anchor="w").pack(side="left")
+        self._mod_lbl = tk.Label(row2, text="—",
+                 font=("Segoe UI", 13, "bold"), bg=Cfg.BG_CARD, fg=Cfg.PURPLE)
+        self._mod_lbl.pack(side="left")
+        self._act_lbl = tk.Label(c3, text="",
+                 font=("Segoe UI", 9), bg=Cfg.BG_CARD, fg=Cfg.WARNING)
+        self._act_lbl.pack(pady=(0, 8))
 
-        # ─ Smoothing slider ─
+        # Smoothing slider
         c4 = self._card(parent, "SENSIBILITÀ CURSORE")
-        tk.Label(c4, text="Smorzamento movimento mouse",
-                 font=("Segoe UI", 8), bg=Cfg.BG_CARD, fg=Cfg.TEXT).pack()
         self._smooth_var = tk.DoubleVar(value=Cfg.SMOOTH)
         ttk.Scale(c4, from_=0.05, to=1.0, orient="horizontal",
                   variable=self._smooth_var,
                   command=lambda v: setattr(Cfg, "SMOOTH", float(v))
                   ).pack(fill="x", padx=16, pady=(4, 10))
 
-        # ─ Gesture guide ─
+        # Gesture guide
         c5 = tk.Frame(parent, bg=Cfg.BG_MID)
         c5.pack(fill="both", expand=True, padx=4, pady=4)
         tk.Label(c5, text="GUIDA GESTI",
                  font=("Segoe UI", 9, "bold"),
                  bg=Cfg.BG_MID, fg=Cfg.TEXT_DIM).pack(pady=(8, 4))
 
+        DOM_COL, MOD_COL = Cfg.ACCENT, Cfg.PURPLE
         GUIDE = [
-            ("☝  Indice solo",      "Muovi cursore"),
-            ("🤏  Pinch",           "Click sinistro"),
-            ("🤏  Pinch + muovi",   "Drag"),
-            ("✌  Due dita",         "Scorri (scroll)"),
-            ("🤌  3 dita su",       "Copia  Ctrl+C"),
-            ("✋  4 dita su",       "Incolla  Ctrl+V"),
-            ("👍  Solo pollice",    "Doppio click"),
-            ("🤘  Rock (i+mig)",    "Annulla  Ctrl+Z"),
-            ("🤙  Pollice+mignolo", "Salva  Ctrl+S"),
-            ("✊  Pugno",           "Pausa / stop drag"),
-            ("🖐  Palmo aperto",    "Reset stato"),
+            ("☝ Indice solo",         "Cursore mouse",       DOM_COL),
+            ("🤏 Pinch i+p",          "Click sx / drag",     DOM_COL),
+            ("🤏 Pinch m+p",          "Click dx",            DOM_COL),
+            ("✌ Due dita",            "Scroll verticale",    DOM_COL),
+            ("🤌 3 dita su",          "Copia  Ctrl+C",       DOM_COL),
+            ("✋ 4 dita su",          "Incolla  Ctrl+V",     DOM_COL),
+            ("👍 Solo pollice",       "Doppio click",        DOM_COL),
+            ("🤘 Rock",               "Annulla  Ctrl+Z",     DOM_COL),
+            ("🤙 Pollice+mignolo",    "Salva  Ctrl+S",       DOM_COL),
+            ("🖐 Palmo+velocità",     "Swipe ←→  Alt+←/→",  DOM_COL),
+            ("──── Mano sinistra ────","(modificatore)",      MOD_COL),
+            ("🖐 L: palmo",           "Congela cursore",     MOD_COL),
+            ("✊ L: pugno",           "Scroll = zoom",       MOD_COL),
+            ("✌ L: due dita",        "Cursore = h-scroll",  MOD_COL),
+            ("🤘 L: rock",            "Alt+Tab",             MOD_COL),
+            ("👍 L: pollice",         "Arma click centrale", MOD_COL),
+            ("🤏+🤏 entrambi pinch", "Zoom in/out",         Cfg.SUCCESS),
         ]
-        for g, a in GUIDE:
-            row = tk.Frame(c5, bg=Cfg.BG_MID)
-            row.pack(fill="x", padx=8, pady=1)
-            tk.Label(row, text=g,  font=("Segoe UI", 8),
-                     bg=Cfg.BG_MID, fg=Cfg.TEXT, width=20, anchor="w").pack(side="left")
-            tk.Label(row, text=a,  font=("Segoe UI", 8),
+        for g, a, col in GUIDE:
+            r = tk.Frame(c5, bg=Cfg.BG_MID)
+            r.pack(fill="x", padx=8, pady=1)
+            tk.Label(r, text=g, font=("Segoe UI", 8),
+                     bg=Cfg.BG_MID, fg=col, width=22, anchor="w").pack(side="left")
+            tk.Label(r, text=a, font=("Segoe UI", 8),
                      bg=Cfg.BG_MID, fg=Cfg.TEXT_DIM, anchor="w").pack(side="left")
 
-    # ── toggle handlers ───────────────────────────────────────
+    # ── toggles ───────────────────────────────────────────────
     def _toggle_hand(self):
         self.hand_active = not self.hand_active
         if self.hand_active:
@@ -799,24 +1081,25 @@ class Dashboard(tk.Tk):
         else:
             self._hand_btn.configure(text="▶  ATTIVA", bg=Cfg.SUCCESS, fg="#000000")
             self._status_lbl.configure(text="●  OFFLINE", fg="#ff4444")
-            self._gest_lbl.configure(text="—")
-            self._action_lbl.configure(text="")
-            if self._cam and self._cam._drag_started if hasattr(self._cam, '_processor') else False:
-                self.mouse.stop_drag()
+            self._dom_lbl.configure(text="—")
+            self._mod_lbl.configure(text="—")
+            self._act_lbl.configure(text="")
+            self._hands_lbl.configure(text="")
+            self.mouse.stop_drag()
 
     def _toggle_vk(self):
         if self._vk is None or not self._vk.winfo_exists():
             self._vk = VirtualKeyboard(self, self.mouse)
-            self._vk_btn.configure(text="⌨  NASCONDI TASTIERA", bg=Cfg.ACCENT, fg=Cfg.TEXT)
+            self._vk_btn.configure(text="⌨  NASCONDI", bg=Cfg.ACCENT, fg=Cfg.TEXT)
         else:
             if self._vk.state() == "normal":
                 self._vk.withdraw()
                 self._vk_btn.configure(text="⌨  MOSTRA TASTIERA", bg=Cfg.BLUE, fg="#000000")
             else:
-                self._vk_btn.configure(text="⌨  NASCONDI TASTIERA", bg=Cfg.ACCENT, fg=Cfg.TEXT)
                 self._vk.deiconify()
+                self._vk_btn.configure(text="⌨  NASCONDI", bg=Cfg.ACCENT, fg=Cfg.TEXT)
 
-    # ── camera + UI loop ──────────────────────────────────────
+    # ── main loop ─────────────────────────────────────────────
     def _start_camera(self):
         self._cam = CameraThread(self)
         self._cam.start_capture()
@@ -825,20 +1108,21 @@ class Dashboard(tk.Tk):
         if self._cam:
             frame = self._cam.get_frame()
             if frame is not None:
-                h, w = frame.shape[:2]
-                dw   = 620
-                dh   = int(h * dw / w)
-                small = cv2.resize(frame, (dw, dh))
-                rgb   = cv2.cvtColor(small, cv2.COLOR_BGR2RGB)
-                photo = ImageTk.PhotoImage(Image.fromarray(rgb))
+                h, w  = frame.shape[:2]
+                dw    = 630
+                small = cv2.resize(frame, (dw, int(h * dw / w)))
+                photo = ImageTk.PhotoImage(
+                    Image.fromarray(cv2.cvtColor(small, cv2.COLOR_BGR2RGB)))
                 self._cam_lbl.configure(image=photo)
                 self._cam_lbl.image = photo
 
             if self.hand_active:
-                g = self._cam.gesture
-                a = self._cam.action
-                self._gest_lbl.configure(text=g or "—")
-                self._action_lbl.configure(text=a)
+                self._dom_lbl.configure(text=self._cam.dom_g or "—")
+                self._mod_lbl.configure(text=self._cam.mod_g or "—")
+                self._act_lbl.configure(text=self._cam.action)
+                n = self._cam.n_hands
+                self._hands_lbl.configure(
+                    text=f"{'✋' * n}  {n} mano{'i' if n != 1 else ''}")
 
         self.after(Cfg.DWELL_MS, self._loop)
 
