@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FaceSwap Studio</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <!-- Animated background -->
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M20 21a8 8 0 1 0-16 0"/>
+            <path d="M16 3.5c1.5.5 3 2 3 4.5s-1.5 4-3 4.5"/>
+          </svg>
+        </div>
+        <span class="logo-text">FaceSwap <span class="logo-accent">Studio</span></span>
+      </div>
+      <div class="system-bar" id="systemBar">
+        <div class="sys-item" id="sysGpu">
+          <svg class="sys-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="6" width="20" height="12" rx="2"/>
+            <path d="M6 10h12M6 14h12M8 6V4M16 6V4M8 18v2M16 18v2"/>
+          </svg>
+          <span id="gpuText">GPU</span>
+        </div>
+        <div class="sys-item">
+          <svg class="sys-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 6v6l4 2"/>
+          </svg>
+          <span id="cpuText">CPU --%</span>
+        </div>
+        <div class="sys-item">
+          <svg class="sys-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <ellipse cx="12" cy="5" rx="9" ry="3"/>
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+            <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/>
+          </svg>
+          <span id="ramText">RAM --%</span>
+        </div>
+        <div class="sys-item model-status" id="modelStatus">
+          <div class="status-dot" id="modelDot"></div>
+          <span id="modelText">Modello</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Model warning banner -->
+    <div class="model-banner" id="modelBanner" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      <div>
+        <strong>Modello mancante:</strong> scarica <code>inswapper_128.onnx</code> e mettilo nella cartella <code>models/</code>.
+        Puoi trovarlo su HuggingFace o nelle community di InsightFace.
+      </div>
+    </div>
+
+    <!-- Two-panel workspace -->
+    <div class="workspace">
+
+      <!-- LEFT: Source face -->
+      <div class="panel panel-source">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="panel-num">01</div>
+            <div>
+              <h2>Foto Sorgente</h2>
+              <p>Il viso da applicare</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="drop-zone" id="sourceZone" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDropSource(event)" onclick="document.getElementById('sourceInput').click()">
+          <input type="file" id="sourceInput" accept="image/*" hidden onchange="onSourceFileSelected(event)" />
+          <div class="drop-content" id="sourceContent">
+            <div class="drop-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
+            <p class="drop-title">Trascina la foto qui</p>
+            <p class="drop-sub">o clicca per selezionare</p>
+            <p class="drop-hint">JPG, PNG, WEBP</p>
+          </div>
+          <div class="drop-preview" id="sourcePreview" style="display:none">
+            <img id="sourceImg" alt="source" />
+            <div class="preview-overlay">
+              <button class="btn-change" onclick="clearSource(event)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                </svg>
+                Cambia
+              </button>
+            </div>
+            <div class="face-badge" id="sourceFaceBadge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+              </svg>
+              Viso rilevato
+            </div>
+          </div>
+        </div>
+
+        <!-- Tips -->
+        <div class="tips-box">
+          <div class="tip-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span>Usa foto frontali ad alta risoluzione</span>
+          </div>
+          <div class="tip-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span>Buona illuminazione migliora il risultato</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CENTER: Arrow + Swap button -->
+      <div class="panel-center">
+        <div class="swap-arrow">
+          <div class="arrow-line"></div>
+          <div class="arrow-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </div>
+        </div>
+        <button class="btn-swap" id="btnSwap" onclick="startSwap()" disabled>
+          <div class="btn-swap-inner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+            </svg>
+            <span>SWAP</span>
+          </div>
+        </button>
+      </div>
+
+      <!-- RIGHT: Target media -->
+      <div class="panel panel-target">
+        <div class="panel-header">
+          <div class="panel-title">
+            <div class="panel-num">02</div>
+            <div>
+              <h2>Video / Immagine</h2>
+              <p>Il media da modificare</p>
+            </div>
+          </div>
+          <div class="media-type-badge" id="mediaTypeBadge" style="display:none">
+            <span id="mediaTypeText">VIDEO</span>
+          </div>
+        </div>
+
+        <div class="drop-zone" id="targetZone" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDropTarget(event)" onclick="document.getElementById('targetInput').click()">
+          <input type="file" id="targetInput" accept="image/*,video/*" hidden onchange="onTargetFileSelected(event)" />
+          <div class="drop-content" id="targetContent">
+            <div class="drop-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="2" y="3" width="20" height="14" rx="2"/>
+                <path d="M8 21h8M12 17v4"/>
+                <polygon points="10,8 16,11 10,14"/>
+              </svg>
+            </div>
+            <p class="drop-title">Trascina video o immagine</p>
+            <p class="drop-sub">o clicca per selezionare</p>
+            <p class="drop-hint">MP4, AVI, MOV, MKV • JPG, PNG</p>
+          </div>
+          <div class="drop-preview" id="targetPreview" style="display:none">
+            <img id="targetImg" alt="target" style="display:none" />
+            <video id="targetVideo" muted loop autoplay style="display:none"></video>
+            <div class="preview-overlay">
+              <button class="btn-change" onclick="clearTarget(event)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                </svg>
+                Cambia
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Video info -->
+        <div class="video-info" id="videoInfo" style="display:none">
+          <div class="info-chip" id="infoName">—</div>
+          <div class="info-chip" id="infoDuration">—</div>
+          <div class="info-chip" id="infoSize">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress section -->
+    <div class="progress-section" id="progressSection" style="display:none">
+      <div class="progress-card">
+        <div class="progress-header">
+          <div class="progress-label" id="progressLabel">Elaborazione in corso...</div>
+          <div class="progress-pct" id="progressPct">0%</div>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill"></div>
+          <div class="progress-glow" id="progressGlow"></div>
+        </div>
+        <div class="progress-sub" id="progressSub">Inizializzazione modelli...</div>
+      </div>
+    </div>
+
+    <!-- Result section -->
+    <div class="result-section" id="resultSection" style="display:none">
+      <div class="result-card">
+        <div class="result-header">
+          <div class="result-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+            </svg>
+            Risultato pronto!
+          </div>
+          <div class="result-actions">
+            <button class="btn-action btn-download" id="btnDownload" onclick="downloadResult()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Scarica
+            </button>
+            <button class="btn-action btn-new" onclick="resetAll()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="1 4 1 10 7 10"/>
+                <path d="M3.51 15a9 9 0 1 0 .49-4.87"/>
+              </svg>
+              Nuovo
+            </button>
+          </div>
+        </div>
+        <div class="result-preview">
+          <img id="resultImg" alt="result" style="display:none" />
+          <video id="resultVideo" controls style="display:none"></video>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error section -->
+    <div class="error-section" id="errorSection" style="display:none">
+      <div class="error-card">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <div>
+          <strong>Errore durante l'elaborazione</strong>
+          <p id="errorMsg"></p>
+        </div>
+        <button class="btn-action btn-new" onclick="resetProgress()">Riprova</button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <span>FaceSwap Studio &mdash; Locale &amp; Privato</span>
+    <span class="footer-sep">•</span>
+    <span>Powered by InsightFace + ONNX</span>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
