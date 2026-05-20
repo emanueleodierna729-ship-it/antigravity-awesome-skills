@@ -3,127 +3,161 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Tecnosaldo · Catalogo Prodotti 2026</title>
+<title>Tecnosaldo &middot; Catalogo Prodotti 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <style>
-:root{--y:#f5c400;--dark:#0a0a0a;--page:#0f0f0f;--card:#181818;--card2:#1e1e1e;--border:#2a2a2a;--text:#e8e8e8;--muted:#666;--green:#44ff88;--red:#ff4444;}
+
+:root{--y:#f5c400;--dark:#0a0a0a;--page:#0f0f0f;--card:#181818;--border:#252525;--text:#e0e0e0;--muted:#666;--green:#44ff88;}
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{background:#060606;font-family:'IBM Plex Sans',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 #bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
-#cur{position:fixed;width:12px;height:12px;background:var(--y);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .15s,height .15s;mix-blend-mode:difference}
-#cur2{position:fixed;width:32px;height:32px;border:1px solid rgba(245,196,0,.4);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .12s}
-#nav{position:fixed;right:14px;top:50%;transform:translateY(-50%);z-index:1000;display:flex;flex-direction:column;gap:8px}
-.nd{width:8px;height:8px;border-radius:50%;background:var(--border);border:1px solid #444;cursor:pointer;transition:all .3s;position:relative}
-.nd:hover,.nd.active{background:var(--y);border-color:var(--y);transform:scale(1.4)}
-.nd::before{content:attr(data-label);position:absolute;right:16px;top:50%;transform:translateY(-50%);background:#1a1a1a;color:var(--y);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1px;padding:3px 6px;border-radius:3px;white-space:nowrap;opacity:0;pointer-events:none;border:1px solid var(--border);transition:opacity .2s}
+#cur{position:fixed;width:10px;height:10px;background:var(--y);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .12s,height .12s;mix-blend-mode:difference}
+#cur2{position:fixed;width:28px;height:28px;border:1px solid rgba(245,196,0,.35);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .1s}
+#nav{position:fixed;right:12px;top:50%;transform:translateY(-50%);z-index:1000;display:flex;flex-direction:column;gap:7px}
+.nd{width:7px;height:7px;border-radius:50%;background:var(--border);border:1px solid #3a3a3a;cursor:pointer;transition:all .3s;position:relative}
+.nd:hover,.nd.active{background:var(--y);border-color:var(--y);transform:scale(1.5)}
+.nd::before{content:attr(data-label);position:absolute;right:14px;top:50%;transform:translateY(-50%);background:#1a1a1a;color:var(--y);font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:1px;padding:3px 6px;border-radius:3px;white-space:nowrap;opacity:0;pointer-events:none;border:1px solid var(--border);transition:opacity .2s}
 .nd:hover::before{opacity:1}
-.page{width:210mm;min-height:297mm;background:var(--page);margin:0 auto 8px;padding:11mm 11mm 9mm;position:relative;overflow:hidden;break-after:page;display:flex;flex-direction:column;z-index:1}
+.page{width:210mm;min-height:297mm;background:var(--page);margin:0 auto 6px;padding:9mm 10mm 8mm;position:relative;overflow:hidden;break-after:page;display:flex;flex-direction:column;z-index:1}
 @page{size:A4;margin:0}
 @media print{#bg,#cur,#cur2,#nav{display:none!important}*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{background:#000}.page{margin:0;break-after:page;min-height:297mm}.fc-i{transform:none!important}.fc-b{display:none}.fc-f{transform:none!important;backface-visibility:visible!important;position:relative!important}.reveal{opacity:1!important;transform:none!important}}
-.pf{flex-shrink:0;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:2.5mm;margin-top:auto;font-size:6pt;color:var(--muted);font-family:'IBM Plex Mono',monospace}
-.pf .br{color:var(--y);font-weight:700;letter-spacing:1px}
-.logo-wrap{display:flex;align-items:center;gap:8px}
-.logo-ic{width:34px;height:34px;background:var(--y);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 0 18px rgba(245,196,0,.4)}
-.logo-nm{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:15pt;color:var(--y);letter-spacing:2px;line-height:1}
-.logo-sm .logo-ic{width:26px;height:26px;font-size:13px;border-radius:5px}
-.logo-sm .logo-nm{font-size:10pt}
-.ph{flex-shrink:0;display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid var(--y);padding-bottom:3mm;margin-bottom:4mm}
-.ph-l .sn{font-family:'IBM Plex Mono',monospace;font-size:6.5pt;color:var(--y);letter-spacing:2px}
-.ph-l .st{font-family:'IBM Plex Mono',monospace;font-size:13pt;font-weight:700;color:var(--y);letter-spacing:1px;line-height:1.1}
-.ph-l .ss{font-size:7pt;color:var(--muted);letter-spacing:.5px;margin-top:1px}
+/* PAGE FOOTER */
+.pf{flex-shrink:0;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:2mm;margin-top:auto;font-size:5.5pt;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:.3px}
+.pfb{color:var(--y);font-weight:700;letter-spacing:1.5px}
+/* PAGE HEADER BAR */
+.phdr{display:flex;justify-content:space-between;align-items:center;padding-bottom:2.5mm;margin-bottom:4mm;border-bottom:1.5px solid var(--y);font-size:5.8pt;font-family:'IBM Plex Mono',monospace;letter-spacing:.3px}
+.phb{color:var(--y);font-weight:700;letter-spacing:2px;font-size:6.5pt}
+.phc{color:var(--muted)}
+.phr{color:var(--muted)}
+/* SECTION HEADER — PDF STYLE */
+.sh{display:flex;align-items:stretch;background:#161616;border-left:5px solid var(--y);border-radius:0 5px 5px 0;margin-bottom:3.5mm;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.6),0 0 0 1px rgba(245,196,0,.08);transition:transform .3s,box-shadow .3s;transform-style:preserve-3d}
+.sh:hover{transform:perspective(600px) translateZ(6px);box-shadow:0 8px 30px rgba(0,0,0,.7),0 0 20px rgba(245,196,0,.15)}
+.sh-n{font-family:'IBM Plex Mono',monospace;font-size:28pt;font-weight:700;color:var(--y);min-width:18mm;display:flex;align-items:center;justify-content:center;padding:2.5mm 3mm;background:rgba(245,196,0,.06);text-shadow:0 2px 12px rgba(245,196,0,.4),0 0 30px rgba(245,196,0,.2);line-height:1}
+.sh-t{padding:2.5mm 4mm;display:flex;flex-direction:column;justify-content:center}
+.sh-tt{font-family:'IBM Plex Mono',monospace;font-size:10.5pt;font-weight:700;color:var(--text);letter-spacing:1px;line-height:1.2}
+.sh-sub{font-size:6pt;color:var(--muted);margin-top:1.5mm;letter-spacing:.5px}
+/* PRODUCT CARD — PDF STYLE WITH CODE BAR */
+.pc{background:var(--card);border:1px solid var(--border);border-radius:4px;display:flex;flex-direction:column;overflow:hidden;transition:border-color .25s,transform .2s,box-shadow .25s;transform-style:preserve-3d}
+.pc:hover{border-color:rgba(245,196,0,.4);transform:translateY(-2px) perspective(600px) translateZ(4px);box-shadow:0 8px 24px rgba(0,0,0,.5),0 0 0 1px rgba(245,196,0,.1),0 0 12px rgba(245,196,0,.08)}
+.pc.hl{border-color:rgba(245,196,0,.3);background:rgba(245,196,0,.03)}
+.pc-cb{background:#111;padding:1.8mm 3mm;font-family:'IBM Plex Mono',monospace;font-size:5.5pt;color:var(--y);font-weight:700;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+.pc-body{padding:2.5mm 3mm;display:flex;flex-direction:column;gap:1mm;flex:1}
+.pc-n{font-weight:700;font-size:7.2pt;color:var(--text);line-height:1.3}
+.pc-d{font-size:6.3pt;color:var(--muted);line-height:1.55;flex:1}
+.pc-t{font-family:'IBM Plex Mono',monospace;font-size:4.8pt;color:#555;letter-spacing:.3px;border-top:1px solid var(--border);padding-top:1.5mm;margin-top:1mm}
+/* FLIP CARD — 3D IMPROVED */
+.fc{perspective:700px;cursor:pointer;transform-style:preserve-3d}
+.fc-i{width:100%;min-height:54mm;transform-style:preserve-3d;transition:transform .65s cubic-bezier(.23,1,.32,1);position:relative;filter:drop-shadow(0 4px 14px rgba(0,0,0,.7))}
+.fc.flipped .fc-i{transform:rotateY(180deg)!important}
+.fc-f,.fc-b{position:absolute;top:0;left:0;width:100%;height:100%;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--card);border:1px solid var(--border);border-radius:4px;display:flex;flex-direction:column;overflow:hidden}
+.fc-b{transform:rotateY(180deg);border-color:rgba(245,196,0,.45);background:#121212;box-shadow:inset 0 0 40px rgba(245,196,0,.06)}
+.fc:hover .fc-f{border-color:rgba(245,196,0,.45)}
+.fc:hover .fc-i{filter:drop-shadow(0 10px 28px rgba(245,196,0,.3))}
+.fc-hint{position:absolute;top:3px;right:5px;font-size:4.5pt;color:rgba(245,196,0,.4);font-family:'IBM Plex Mono',monospace;pointer-events:none;z-index:2;letter-spacing:.5px}
+.fc-cb{background:#111;padding:1.8mm 3mm;font-family:'IBM Plex Mono',monospace;font-size:5.5pt;color:var(--y);font-weight:700;letter-spacing:.5px;border-bottom:1px solid var(--border);flex-shrink:0}
+.fc-body{padding:2.5mm 3mm;display:flex;flex-direction:column;gap:1mm;flex:1;overflow:hidden}
+.fc-n{font-weight:700;font-size:7.2pt;color:var(--text);line-height:1.3}
+.fc-d{font-size:6.3pt;color:var(--muted);line-height:1.55;flex:1}
+.fc-t{font-family:'IBM Plex Mono',monospace;font-size:4.8pt;color:#555;letter-spacing:.3px;border-top:1px solid var(--border);padding-top:1.5mm;margin-top:1mm}
+.fc-qr{display:flex;justify-content:flex-end;padding-top:2mm;flex-shrink:0}
+.fc-qrc{border-radius:3px;background:#fff;padding:2px;display:block}
+/* GRIDS */
 .grid{display:grid;gap:2.5mm}
 .g2{grid-template-columns:1fr 1fr}
 .g3{grid-template-columns:1fr 1fr 1fr}
 .g4{grid-template-columns:1fr 1fr 1fr 1fr}
-.fc{perspective:900px;cursor:pointer;transform-style:preserve-3d}
-.fc-i{width:100%;height:100%;min-height:52mm;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.23,1,.32,1);position:relative;filter:drop-shadow(0 4px 12px rgba(0,0,0,.6))}
-.fc.flipped .fc-i{transform:rotateY(180deg)!important}
-.fc-f,.fc-b{position:absolute;top:0;left:0;width:100%;height:100%;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--card);border:1px solid var(--border);border-radius:5px;padding:2.8mm;display:flex;flex-direction:column;gap:1.5mm}
-.fc-b{transform:rotateY(180deg);border-color:rgba(245,196,0,.5);background:#111;box-shadow:inset 0 0 30px rgba(245,196,0,.06)}
-.fc:hover .fc-i{filter:drop-shadow(0 8px 24px rgba(245,196,0,.25))}
-.fc:hover .fc-f{border-color:rgba(245,196,0,.4)}
-.fc-hint{position:absolute;bottom:2px;right:4px;font-size:5pt;color:rgba(245,196,0,.45);font-family:'IBM Plex Mono',monospace;letter-spacing:.3px;pointer-events:none}
-.fc-qr{display:flex;justify-content:flex-end;margin-top:auto;padding-top:2mm}
-.pc{background:var(--card);border:1px solid var(--border);border-radius:5px;padding:2.8mm;display:flex;flex-direction:column;gap:1.5mm;transition:border-color .3s,transform .2s}
-.pc:hover{border-color:rgba(245,196,0,.3);transform:translateY(-1px)}
-.pc.hl{border-color:rgba(245,196,0,.35);background:rgba(245,196,0,.04)}
-.pc-code{font-family:'IBM Plex Mono',monospace;font-size:5.8pt;color:var(--y);font-weight:700;letter-spacing:.2px}
-.pc-name{font-weight:700;font-size:7.5pt;color:var(--text);line-height:1.3}
-.pc-desc{font-size:6.8pt;color:var(--muted);line-height:1.5;flex:1}
-.pc-tags{display:flex;flex-wrap:wrap;gap:1.5mm;margin-top:1.5mm}
-.tag{font-family:'IBM Plex Mono',monospace;font-size:5.2pt;color:var(--muted);border:1px solid var(--border);padding:1px 3px;border-radius:2px;letter-spacing:.2px}
-.tag.y{color:var(--y);border-color:rgba(245,196,0,.3)}
-.tag.g{color:var(--green);border-color:rgba(68,255,136,.3)}
-.sd{display:flex;align-items:center;gap:3mm;margin:3.5mm 0 2mm}
-.ln{flex:1;height:1px;background:var(--border)}
-.lb{font-family:'IBM Plex Mono',monospace;font-size:6pt;color:var(--y);letter-spacing:1.5px;white-space:nowrap}
-.cobot{background:linear-gradient(135deg,rgba(245,196,0,.08),rgba(68,255,136,.04));border:1px solid rgba(245,196,0,.35);border-radius:6px;padding:3.5mm;margin:3mm 0}
-.cobot-title{font-family:'IBM Plex Mono',monospace;font-size:8.5pt;font-weight:700;color:var(--y);letter-spacing:1px;margin-bottom:2mm;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
-.cobot-new{font-size:6pt;background:var(--green);color:#000;padding:1px 5px;border-radius:2px;font-weight:700;letter-spacing:1px}
-.cobot-body{font-size:7pt;color:var(--text);line-height:1.6}
-.cobot-body strong{color:var(--y)}
-@keyframes arc-flicker{0%,100%{opacity:1;filter:blur(0)}45%{opacity:.7;filter:blur(.5px)}50%{opacity:1}75%{opacity:.85}}
-@keyframes weld-bead{0%{width:0}100%{width:100%}}
-.arc-line{height:2px;background:linear-gradient(90deg,transparent,var(--y),#fff,var(--y),transparent);animation:weld-bead 1.8s ease-out forwards,arc-flicker 1.8s ease-out;border-radius:1px;margin:2mm 0;box-shadow:0 0 8px var(--y),0 0 20px rgba(245,196,0,.3)}
-.reveal{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s}
+/* DIVIDER */
+.dl{display:flex;align-items:center;gap:2.5mm;margin:3mm 0 2mm}
+.dln{flex:1;height:1px;background:var(--border)}
+.dlb{font-family:'IBM Plex Mono',monospace;font-size:5.8pt;color:var(--y);letter-spacing:1.5px;white-space:nowrap}
+/* APP BANNER */
+.ab{background:#161616;border:1px solid var(--border);border-left:3px solid var(--y);border-radius:0 4px 4px 0;padding:2mm 3mm;margin:2mm 0;font-size:6.8pt;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:.3px}
+/* COBOT BANNER */
+.cobot{background:linear-gradient(135deg,rgba(245,196,0,.08),rgba(68,255,136,.04));border:1px solid rgba(245,196,0,.3);border-radius:5px;padding:3mm;margin:2.5mm 0}
+.cobt{font-family:'IBM Plex Mono',monospace;font-size:7.5pt;font-weight:700;color:var(--y);letter-spacing:.8px;margin-bottom:1.5mm;display:flex;align-items:center;gap:4px;flex-wrap:wrap;line-height:1.4}
+.cobn{font-size:5.5pt;background:var(--green);color:#000;padding:1px 5px;border-radius:2px;font-weight:700;letter-spacing:1px}
+.cobb{font-size:6.8pt;color:var(--text);line-height:1.65}
+.cobb strong{color:var(--y)}
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .55s,transform .55s}
 .reveal.visible{opacity:1;transform:none}
-.cover{background:radial-gradient(ellipse at 30% 50%,rgba(245,196,0,.06) 0%,transparent 65%),var(--page);display:flex;flex-direction:column;justify-content:center;align-items:flex-start;position:relative}
-.cover-hero{flex:1;display:flex;flex-direction:column;justify-content:center;gap:6mm;padding:4mm 0;transform-style:preserve-3d;transition:transform .1s}
-.cover-badge{font-family:'IBM Plex Mono',monospace;font-size:7pt;color:var(--green);letter-spacing:2px;border:1px solid rgba(68,255,136,.3);padding:2px 8px;border-radius:3px;display:inline-block;margin-bottom:2mm}
-.cover-year{font-family:'IBM Plex Mono',monospace;font-size:52pt;font-weight:700;color:var(--y);letter-spacing:-2px;line-height:1;text-shadow:0 0 60px rgba(245,196,0,.3)}
-.cover-title{font-family:'IBM Plex Mono',monospace;font-size:16pt;color:var(--text);letter-spacing:3px;line-height:1.3}
-.cover-sub{font-size:9pt;color:var(--muted);letter-spacing:1px;line-height:1.6}
-.cover-line{width:40mm;height:3px;background:var(--y);margin:3mm 0;box-shadow:0 0 16px var(--y)}
-.cover-dealer{display:inline-flex;align-items:center;gap:3mm;border:1px solid var(--border);padding:2.5mm 4mm;border-radius:4px;margin-top:3mm}
-.cover-dealer-ic{font-size:14px}
-.cover-dealer-t{font-family:'IBM Plex Mono',monospace;font-size:7pt;color:var(--text);letter-spacing:.5px}
-.cover-dealer-t span{display:block;font-size:6pt;color:var(--muted)}
-.cover-region{position:absolute;top:14mm;right:11mm;text-align:right}
-.cover-region-t{font-family:'IBM Plex Mono',monospace;font-size:7pt;color:var(--y);letter-spacing:2px}
-.cover-region-s{font-size:6pt;color:var(--muted);letter-spacing:.5px;margin-top:1px}
-.cover-qr{position:absolute;bottom:16mm;right:11mm;text-align:center}
-.cover-qr-l{font-size:6pt;color:var(--muted);margin-top:2mm;font-family:'IBM Plex Mono',monospace;letter-spacing:.5px}
-.hero-logo{display:flex;align-items:center;gap:5mm;margin-bottom:5mm}
-.hero-li{width:50px;height:50px;background:var(--y);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;box-shadow:0 0 30px rgba(245,196,0,.5),0 0 60px rgba(245,196,0,.2);animation:arc-flicker 3s infinite}
-.hero-ln{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:22pt;color:var(--y);letter-spacing:4px;line-height:1}
-.hero-ls{font-size:7pt;color:var(--muted);letter-spacing:1.5px;margin-top:2px}
-.val-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2mm;margin:3mm 0}
-.val-card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:2.5mm;text-align:center}
-.val-ic{font-size:14px;display:block;margin-bottom:1mm}
-.val-t{font-family:'IBM Plex Mono',monospace;font-size:5.8pt;color:var(--y);font-weight:700;letter-spacing:1px}
-.team-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2mm;margin:2mm 0}
-.tm{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:2.5mm;display:flex;align-items:center;gap:2mm}
-.tm-av{width:22px;height:22px;border-radius:50%;background:rgba(245,196,0,.15);border:1.5px solid var(--y);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
-.tm-n{font-weight:700;font-size:7pt;color:var(--text)}
-.tm-r{font-family:'IBM Plex Mono',monospace;font-size:5.5pt;color:var(--muted);letter-spacing:.3px}
-.hist-grid{display:grid;grid-template-columns:1fr 1fr;gap:2mm;margin:2mm 0}
-.hc{background:linear-gradient(135deg,rgba(245,196,0,.06),rgba(245,196,0,.02));border:1px solid rgba(245,196,0,.25);border-radius:5px;padding:3mm}
-.hc-name{font-family:'IBM Plex Mono',monospace;font-size:8pt;font-weight:700;color:var(--y);margin-bottom:1mm}
-.hc-desc{font-size:6.8pt;color:var(--muted);line-height:1.55}
-.svc-g{display:grid;grid-template-columns:1fr 1fr 1fr;gap:3mm;flex:1}
-.sc{background:var(--card);border:1px solid var(--border);border-radius:5px;padding:3mm;display:flex;flex-direction:column;gap:2mm}
-.sc-ico{font-size:18px}
-.sc-t{font-family:'IBM Plex Mono',monospace;font-size:7pt;font-weight:700;color:var(--y);letter-spacing:.5px}
-.sc-d{font-size:6.8pt;color:var(--muted);line-height:1.5;flex:1}
-.cbox{background:var(--card);border:1px solid var(--border);border-radius:5px;padding:3.5mm;margin-top:3mm}
-.cbox-t{font-family:'IBM Plex Mono',monospace;font-size:8pt;font-weight:700;color:var(--y);letter-spacing:1px;margin-bottom:2.5mm}
-.cg{display:grid;grid-template-columns:1fr 1fr;gap:1.5mm}
-.ci{display:flex;gap:3mm;align-items:flex-start}
-.ci-l{font-family:'IBM Plex Mono',monospace;font-size:6pt;color:var(--muted);letter-spacing:.5px;min-width:12mm;flex-shrink:0;padding-top:.5mm}
-.ci-v{font-size:7pt;color:var(--text);line-height:1.5}
+/* ARC / WELD */
+@keyframes arc-flicker{0%,100%{opacity:1}45%{opacity:.65}50%{opacity:1}75%{opacity:.8}}
+@keyframes weld-bead{0%{width:0}100%{width:100%}}
+.arc-line{height:2px;background:linear-gradient(90deg,transparent,var(--y),#fff,var(--y),transparent);animation:weld-bead 1.8s ease-out forwards,arc-flicker 1.8s ease-out;border-radius:1px;margin:1.5mm 0;box-shadow:0 0 8px var(--y),0 0 20px rgba(245,196,0,.3)}
+/* ELGA / ESAB BANNERS */
+.elga-banner{background:linear-gradient(90deg,rgba(68,255,136,.07),transparent);border:1px solid rgba(68,255,136,.25);border-radius:4px;padding:2mm 3mm;margin-bottom:2.5mm;display:flex;align-items:center;gap:3mm}
+.elga-logo{font-family:'IBM Plex Mono',monospace;font-size:12pt;font-weight:700;color:var(--green);letter-spacing:3px}
+.esab-banner{background:linear-gradient(90deg,rgba(41,98,255,.1),transparent);border:1px solid rgba(41,98,255,.25);border-radius:4px;padding:2mm 3mm;margin-bottom:2.5mm;display:flex;align-items:center;gap:3mm}
+.esab-logo{font-family:'IBM Plex Mono',monospace;font-size:12pt;font-weight:700;color:#5c9aff;letter-spacing:3px}
+/* TOC */
 .toc-grid{display:grid;grid-template-columns:1fr 1fr;gap:2mm;flex:1}
-.toc-item{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:3mm;display:flex;align-items:center;gap:3mm;cursor:pointer;transition:all .2s}
-.toc-item:hover{border-color:rgba(245,196,0,.4);background:rgba(245,196,0,.04)}
-.toc-n{font-family:'IBM Plex Mono',monospace;font-size:20pt;font-weight:700;color:rgba(245,196,0,.2);min-width:14mm;line-height:1}
-.toc-t{font-family:'IBM Plex Mono',monospace;font-size:8pt;font-weight:700;color:var(--y);letter-spacing:.5px;line-height:1.2}
-.toc-s{font-size:6.5pt;color:var(--muted);margin-top:1mm;line-height:1.4}
-.elga-banner{background:linear-gradient(90deg,rgba(68,255,136,.07),rgba(68,255,136,.02));border:1px solid rgba(68,255,136,.3);border-radius:5px;padding:2.5mm 3.5mm;margin-bottom:3mm;display:flex;align-items:center;gap:3mm}
-.elga-logo{font-family:'IBM Plex Mono',monospace;font-size:13pt;font-weight:700;color:var(--green);letter-spacing:3px}
-.esab-banner{background:linear-gradient(90deg,rgba(41,98,255,.1),rgba(41,98,255,.03));border:1px solid rgba(41,98,255,.3);border-radius:5px;padding:2.5mm 3.5mm;margin-bottom:3mm;display:flex;align-items:center;gap:3mm}
-.esab-logo{font-family:'IBM Plex Mono',monospace;font-size:13pt;font-weight:700;color:#5c9aff;letter-spacing:3px}
+.toc-item{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:2.5mm;display:flex;align-items:center;gap:2.5mm;cursor:pointer;transition:all .2s;border-left:3px solid transparent}
+.toc-item:hover{border-left-color:var(--y);background:rgba(245,196,0,.04)}
+.toc-nn{font-family:'IBM Plex Mono',monospace;font-size:18pt;font-weight:700;color:rgba(245,196,0,.2);min-width:12mm;line-height:1}
+.toc-tt{font-family:'IBM Plex Mono',monospace;font-size:7pt;font-weight:700;color:var(--y);letter-spacing:.5px;line-height:1.2}
+.toc-ss{font-size:6pt;color:var(--muted);margin-top:.8mm;line-height:1.4}
+/* VAL / TEAM / HIST */
+.val-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2mm;margin:2mm 0}
+.val-c{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:2.5mm;text-align:center;transition:border-color .2s,transform .2s}
+.val-c:hover{border-color:rgba(245,196,0,.3);transform:translateY(-1px)}
+.val-ic{font-size:13px;display:block;margin-bottom:1mm}
+.val-t{font-family:'IBM Plex Mono',monospace;font-size:5.5pt;color:var(--y);font-weight:700;letter-spacing:.8px}
+.team-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2mm;margin:1.5mm 0}
+.tm{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:2mm;display:flex;align-items:center;gap:2mm}
+.tm-av{width:20px;height:20px;border-radius:50%;background:rgba(245,196,0,.12);border:1.5px solid var(--y);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0}
+.tm-n{font-weight:700;font-size:6.8pt;color:var(--text)}
+.tm-r{font-family:'IBM Plex Mono',monospace;font-size:5pt;color:var(--muted)}
+.hist-g{display:grid;grid-template-columns:1fr 1fr;gap:2mm;margin:1.5mm 0}
+.hc{background:linear-gradient(135deg,rgba(245,196,0,.06),rgba(245,196,0,.02));border:1px solid rgba(245,196,0,.2);border-radius:4px;padding:2.5mm}
+.hc-nm{font-family:'IBM Plex Mono',monospace;font-size:7.5pt;font-weight:700;color:var(--y);margin-bottom:1mm}
+.hc-d{font-size:6.5pt;color:var(--muted);line-height:1.55}
+/* SERVICES */
+.svc-g{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2.5mm;flex:1}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:3mm;display:flex;flex-direction:column;gap:1.5mm;transition:border-color .2s,transform .2s}
+.sc:hover{border-color:rgba(245,196,0,.3);transform:translateY(-2px)}
+.sc-ico{font-size:16px}
+.sc-t{font-family:'IBM Plex Mono',monospace;font-size:6.5pt;font-weight:700;color:var(--y);letter-spacing:.5px}
+.sc-d{font-size:6.5pt;color:var(--muted);line-height:1.5;flex:1}
+/* CONTACTS */
+.cbox{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:3mm;margin-top:2.5mm}
+.cbox-t{font-family:'IBM Plex Mono',monospace;font-size:7.5pt;font-weight:700;color:var(--y);letter-spacing:1px;margin-bottom:2mm}
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:1.5mm}
+.ci{display:flex;gap:2.5mm;align-items:flex-start}
+.ci-l{font-family:'IBM Plex Mono',monospace;font-size:5.5pt;color:var(--muted);letter-spacing:.5px;min-width:12mm;flex-shrink:0;padding-top:.5mm}
+.ci-v{font-size:6.8pt;color:var(--text);line-height:1.5}
+/* COVER */
+.cover{background:radial-gradient(ellipse at 25% 40%,rgba(245,196,0,.08) 0%,transparent 60%),var(--page);display:flex;flex-direction:column;justify-content:flex-start;padding:0}
+.cov-top{background:#111;padding:5mm 10mm 4mm;border-bottom:3px solid var(--y)}
+.cov-logo{display:flex;align-items:center;gap:5mm}
+.cov-lic{width:44px;height:44px;background:var(--y);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 0 24px rgba(245,196,0,.5),0 0 50px rgba(245,196,0,.2);animation:arc-flicker 3s infinite}
+.cov-lnm{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:19pt;color:var(--y);letter-spacing:4px;line-height:1}
+.cov-lsub{font-size:6.5pt;color:var(--muted);letter-spacing:1.5px;margin-top:2px}
+.cov-hero{flex:1;padding:8mm 10mm 6mm;display:flex;flex-direction:column;justify-content:center;gap:4mm;transform-style:preserve-3d}
+.cov-tagline{font-family:'IBM Plex Sans',sans-serif;font-size:30pt;font-weight:700;color:var(--text);line-height:1.1;letter-spacing:-0.5px}
+.cov-tagline em{color:var(--y);font-style:normal}
+.cov-sub{font-size:8.5pt;color:var(--muted);line-height:1.6;max-width:100mm}
+.cov-sub strong{color:var(--text)}
+/* Yellow arrow stack (PDF-style chevrons) */
+.arr-stack{display:flex;flex-direction:column;gap:2.5mm;margin:3mm 0}
+.arr{height:14mm;background:var(--y);border-radius:0 4px 4px 0;clip-path:polygon(0 0,calc(100% - 12mm) 0,100% 50%,calc(100% - 12mm) 100%,0 100%);transition:transform .3s}
+.arr:hover{transform:translateX(3mm)}
+.arr:nth-child(1){width:95mm;opacity:1}
+.arr:nth-child(2){width:75mm;opacity:.65}
+.arr:nth-child(3){width:55mm;opacity:.35}
+.cov-bottom{background:var(--y);padding:3.5mm 10mm;flex-shrink:0}
+.cov-cat{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:10pt;color:#111;letter-spacing:1px}
+.cov-meta{font-size:6.5pt;color:#333;margin-top:1mm;letter-spacing:.3px}
+.cov-qr{position:absolute;bottom:24mm;right:10mm;text-align:center}
+.cov-qrl{font-size:5.5pt;color:#333;margin-top:1.5mm;font-family:'IBM Plex Mono',monospace;letter-spacing:.5px}
+/* LOGO SMALL */
+.logo-sm{display:flex;align-items:center;gap:4px}
+.logo-sm-ic{width:22px;height:22px;background:var(--y);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.logo-sm-nm{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:8.5pt;color:var(--y);letter-spacing:2px}
+
 </style>
 </head>
 <body>
@@ -131,351 +165,386 @@ body{background:#060606;font-family:'IBM Plex Sans',sans-serif;color:var(--text)
 <div id="cur"></div>
 <div id="cur2"></div>
 <nav id="nav">
-  <div class="nd active" data-label="COVER" onclick="goTo(0)"></div>
-  <div class="nd" data-label="SOMMARIO" onclick="goTo(1)"></div>
-  <div class="nd" data-label="CHI SIAMO" onclick="goTo(2)"></div>
-  <div class="nd" data-label="MILLER MIG/TIG" onclick="goTo(3)"></div>
-  <div class="nd" data-label="MILLER MMA" onclick="goTo(4)"></div>
-  <div class="nd" data-label="ELGA" onclick="goTo(5)"></div>
-  <div class="nd" data-label="ESAB SALDATRICI" onclick="goTo(6)"></div>
-  <div class="nd" data-label="ESAB CONSUMABILI" onclick="goTo(7)"></div>
-  <div class="nd" data-label="ACCIAIO" onclick="goTo(8)"></div>
-  <div class="nd" data-label="INOX" onclick="goTo(9)"></div>
-  <div class="nd" data-label="GENERICI" onclick="goTo(10)"></div>
-  <div class="nd" data-label="DPI" onclick="goTo(11)"></div>
-  <div class="nd" data-label="RICAMBI &amp; TIG" onclick="goTo(12)"></div>
-  <div class="nd" data-label="SERVIZI" onclick="goTo(13)"></div>
+<div class="nd active" data-label="COVER" onclick="goTo(0)"></div>
+<div class="nd" data-label="SOMMARIO" onclick="goTo(1)"></div>
+<div class="nd" data-label="CHI SIAMO" onclick="goTo(2)"></div>
+<div class="nd" data-label="MILLER MIG/TIG" onclick="goTo(3)"></div>
+<div class="nd" data-label="MILLER MMA" onclick="goTo(4)"></div>
+<div class="nd" data-label="ELGA" onclick="goTo(5)"></div>
+<div class="nd" data-label="ESAB" onclick="goTo(6)"></div>
+<div class="nd" data-label="ESAB CONS." onclick="goTo(7)"></div>
+<div class="nd" data-label="ACCIAIO" onclick="goTo(8)"></div>
+<div class="nd" data-label="INOX" onclick="goTo(9)"></div>
+<div class="nd" data-label="GENERICI" onclick="goTo(10)"></div>
+<div class="nd" data-label="DPI" onclick="goTo(11)"></div>
+<div class="nd" data-label="RICAMBI &amp; TIG" onclick="goTo(12)"></div>
+<div class="nd" data-label="SERVIZI" onclick="goTo(13)"></div>
 </nav>
-<!-- PAG 1 COVER -->
 <div class="page cover" id="p0">
-  <div class="cover-region"><div class="cover-region-t">TOSCANA · LIGURIA</div><div class="cover-region-s">Distribuzione professionale · Est. 2025</div></div>
-  <div class="cover-hero" id="heroTilt">
-    <div class="hero-logo"><div class="hero-li">⚡</div><div><div class="hero-ln">TECNOSALDO</div><div class="hero-ls">SALDATURA PROFESSIONALE</div></div></div>
-    <div class="arc-line"></div>
-    <div class="cover-badge">✦ CATALOGO UFFICIALE</div>
-    <div class="cover-year">2026</div>
-    <div class="cover-title">PRODOTTI &amp; SERVIZI<br>PER LA SALDATURA</div>
-    <div class="cover-sub">Miller Electric · ELGA Consumabili · ESAB<br>Acciai · Inox · TIG · DPI · Cobot Welding Division</div>
-    <div class="cover-line"></div>
-    <div class="cover-dealer"><div class="cover-dealer-ic">🏆</div><div class="cover-dealer-t">MILLER AUTHORIZED DEALER<span>ESAB PARTNER · ELGA DISTRIBUTOR</span></div></div>
-    <div class="cover-dealer" style="margin-top:2mm;border-color:rgba(68,255,136,.2)"><div class="cover-dealer-ic">🤖</div><div class="cover-dealer-t" style="color:#44ff88">COBOT WELDING DIVISION<span style="color:var(--muted)">Prima in Toscana &amp; Liguria · Universal Robots</span></div></div>
+<div class="cov-top">
+  <div class="cov-logo">
+    <div class="cov-lic">&#9889;</div>
+    <div><div class="cov-lnm">TECNOSALDO</div><div class="cov-lsub">SALDATURA PROFESSIONALE</div></div>
   </div>
-  <div class="cover-qr"><canvas id="qr1" width="70" height="70" style="border-radius:4px;background:#fff;padding:3px;display:block"></canvas><div class="cover-qr-l">WWW.TECNOSALDO.IT</div></div>
-  <div class="pf"><span class="br">TECNOSALDO</span><span>www.tecnosaldo.it · +39 393 4775160</span><span>pag. 1</span></div>
 </div>
-
-<!-- PAG 2 SOMMARIO -->
+<div class="cov-hero" id="covHero">
+  <div style="font-family:'IBM Plex Mono',monospace;font-size:6.5pt;color:var(--green);letter-spacing:2.5px;border:1px solid rgba(68,255,136,.3);padding:2px 8px;border-radius:3px;display:inline-block;margin-bottom:1mm">&#10022; CATALOGO UFFICIALE 2026</div>
+  <div class="cov-tagline">Unione<br><em>perfetta.</em></div>
+  <div class="arr-stack">
+    <div class="arr"></div>
+    <div class="arr"></div>
+    <div class="arr"></div>
+  </div>
+  <div class="cov-sub"><strong>TECNOLOGIA</strong> per saldare. <strong>PERSONE</strong> per supportarti.<br>Vendita, assistenza e consulenza professionale in Toscana e Liguria<br>con i migliori brand del settore.</div>
+  <div style="display:flex;gap:3mm;flex-wrap:wrap;margin-top:2mm">
+    <div style="border:1px solid var(--border);padding:2mm 3.5mm;border-radius:4px;display:inline-flex;align-items:center;gap:2.5mm"><span style="font-size:12px">&#127942;</span><div style="font-family:'IBM Plex Mono',monospace;font-size:6pt;color:var(--text)">MILLER AUTHORIZED DEALER<br><span style="color:var(--muted)">ESAB PARTNER &middot; ELGA DISTRIBUTOR</span></div></div>
+    <div style="border:1px solid rgba(68,255,136,.2);padding:2mm 3.5mm;border-radius:4px;display:inline-flex;align-items:center;gap:2.5mm"><span style="font-size:12px">&#129302;</span><div style="font-family:'IBM Plex Mono',monospace;font-size:6pt;color:var(--green)">COBOT WELDING DIVISION<br><span style="color:var(--muted)">Prima in Toscana &amp; Liguria</span></div></div>
+  </div>
+</div>
+<div class="cov-qr"><canvas id="qr1" width="68" height="68" style="border-radius:4px;background:#fff;padding:3px;display:block"></canvas><div class="cov-qrl">WWW.TECNOSALDO.IT</div></div>
+<div class="cov-bottom">
+  <div class="cov-cat">CATALOGO PRODOTTI 2026</div>
+  <div class="cov-meta">Impianti Miller &amp; ESAB &nbsp;&middot;&nbsp; Consumabili &nbsp;&middot;&nbsp; DPI &nbsp;&middot;&nbsp; Dischi Abrasivi &nbsp;&middot;&nbsp; Accessori TIG &nbsp;&middot;&nbsp; Cobot Welding &nbsp;|&nbsp; www.tecnosaldo.it &nbsp;&middot;&nbsp; commerciale@tecnosaldo.it &nbsp;&middot;&nbsp; +39 393 4775160</div>
+</div>
+</div>
 <div class="page" id="p1">
-  <div class="ph"><div class="ph-l"><div class="sn">INDICE</div><div class="st">SOMMARIO 2026</div><div class="ss">14 sezioni · tutti i prodotti del catalogo ufficiale</div></div><div class="logo-wrap logo-sm"><div class="logo-ic">⚡</div><div><div class="logo-nm">TECNOSALDO</div></div></div></div>
-  <div class="toc-grid">
-    <div class="toc-item reveal" onclick="goTo(2)"><div class="toc-n">01</div><div><div class="toc-t">CHI SIAMO</div><div class="toc-s">Mission · Team · Cosme &amp; Tubiplastic · Cobot Division</div></div></div>
-    <div class="toc-item reveal" onclick="goTo(3)"><div class="toc-n">02</div><div><div class="toc-t">MILLER MIG / TIG</div><div class="toc-s">Deltaweld · Continuum · Dynasty · Syncrowave</div></div></div>
-    <div class="toc-item reveal" onclick="goTo(4)"><div class="toc-n">03</div><div><div class="toc-t">MILLER MMA + COBOT</div><div class="toc-s">Maxstar · XMT · SubArc · Cobot Banner</div></div></div>
-    <div class="toc-item reveal" onclick="goTo(5)"><div class="toc-n">04</div><div><div class="toc-t">ELGA CONSUMABILI</div><div class="toc-s">Prestige · Limarosta · Probond · Supercore · Aristig</div></div></div>
-    <div class="toc-item reveal" onclick="goTo(6)"><div class="toc-n">05</div><div><div class="toc-t">ESAB SALDATRICI + COBOT</div><div class="toc-s">Rebel · Rogue · K4000 · Cobot Banner</div></div></div>
-    <div class="toc-item reveal" onclick="goTo(7)"><div class="toc-n">06</div><div><div class="toc-t">CONSUMABILI ESAB</div><div class="toc-s">OK 48 · Tubrod · Shield-Bright · Autrod Al</div></div></div>
-    <div class="toc-item reveal" onclick="goTo(8)"><div class="toc-n">07</div><div><div class="toc-t">CONSUMABILI ACCIAIO</div><div class="toc-s">MMA basici/rutilici · SG2 · Filo animato · TIG</div></div></div>
-    <div class="toc-item reveal" onclick="goTo(9)"><div class="toc-n">08</div><div><div class="toc-t">CONSUMABILI INOX</div><div class="toc-s">308/308L · 316/316L · Cromarod · CRINOXTIG</div></div></div>
-    <div class="toc-item reveal" onclick="goTo(10)"><div class="toc-n">09</div><div><div class="toc-t">GENERICI + ABRASIVI</div><div class="toc-s">Torce MIG · Riduttori · Cavi · Dischi</div></div></div>
-    <div class="toc-item reveal" onclick="goTo(11)"><div class="toc-n">10</div><div><div class="toc-t">DPI</div><div class="toc-s">Guanti · Caschi · Grembiuli · Respiratori · Ghette</div></div></div>
-    <div class="toc-item reveal" onclick="goTo(12)"><div class="toc-n">11</div><div><div class="toc-t">RICAMBI + TIG</div><div class="toc-s">Vetri · Policarbonato · Tungsteno · Torce WP · Kit</div></div></div>
-    <div class="toc-item reveal" onclick="goTo(13)"><div class="toc-n">12</div><div><div class="toc-t">SERVIZI + CONTATTI</div><div class="toc-s">Consulenza · Demo · Formazione · Noleggio</div></div></div>
-  </div>
-  <div class="pf"><span class="br">TECNOSALDO</span><span>www.tecnosaldo.it · +39 393 4775160</span><span>pag. 2</span></div>
+<div class="phdr"><span class="phb">TECNOSALDO</span><span class="phc">Indice dei contenuti</span><span class="phr">CATALOGO PRODOTTI 2026</span></div>
+<div class="sh reveal"><div class="sh-n">00</div><div class="sh-t"><div class="sh-tt">SOMMARIO 2026</div><div class="sh-sub">14 sezioni &middot; tutti i prodotti del catalogo ufficiale</div></div></div>
+<div class="toc-grid">
+  <div class="toc-item reveal" onclick="goTo(2)"><div class="toc-nn">01</div><div><div class="toc-tt">CHI SIAMO</div><div class="toc-ss">Mission &middot; Team &middot; Cosme &amp; Tubiplastic &middot; Cobot Division</div></div></div>
+  <div class="toc-item reveal" onclick="goTo(3)"><div class="toc-nn">02</div><div><div class="toc-tt">MILLER MIG / TIG</div><div class="toc-ss">Deltaweld &middot; Continuum &middot; Dynasty &middot; Syncrowave</div></div></div>
+  <div class="toc-item reveal" onclick="goTo(4)"><div class="toc-nn">03</div><div><div class="toc-tt">MILLER MMA + COBOT</div><div class="toc-ss">Maxstar &middot; XMT &middot; SubArc &middot; Cobot Banner</div></div></div>
+  <div class="toc-item reveal" onclick="goTo(5)"><div class="toc-nn">04</div><div><div class="toc-tt">ELGA CONSUMABILI</div><div class="toc-ss">Prestige &middot; Limarosta &middot; Probond &middot; Supercore &middot; Aristig</div></div></div>
+  <div class="toc-item reveal" onclick="goTo(6)"><div class="toc-nn">05</div><div><div class="toc-tt">ESAB SALDATRICI + COBOT</div><div class="toc-ss">Rebel &middot; Rogue &middot; K4000 &middot; Cobot Banner</div></div></div>
+  <div class="toc-item reveal" onclick="goTo(7)"><div class="toc-nn">06</div><div><div class="toc-tt">CONSUMABILI ESAB</div><div class="toc-ss">OK 48 &middot; Tubrod &middot; Shield-Bright &middot; Autrod Al</div></div></div>
+  <div class="toc-item reveal" onclick="goTo(8)"><div class="toc-nn">07</div><div><div class="toc-tt">CONSUMABILI ACCIAIO</div><div class="toc-ss">MMA basici/rutilici &middot; SG2 &middot; Filo animato &middot; TIG</div></div></div>
+  <div class="toc-item reveal" onclick="goTo(9)"><div class="toc-nn">08</div><div><div class="toc-tt">CONSUMABILI INOX</div><div class="toc-ss">308/308L &middot; 316/316L &middot; Cromarod &middot; CRINOXTIG</div></div></div>
+  <div class="toc-item reveal" onclick="goTo(10)"><div class="toc-nn">09</div><div><div class="toc-tt">GENERICI + ABRASIVI</div><div class="toc-ss">Torce MIG &middot; Riduttori &middot; Cavi &middot; Dischi</div></div></div>
+  <div class="toc-item reveal" onclick="goTo(11)"><div class="toc-nn">10</div><div><div class="toc-tt">DPI</div><div class="toc-ss">Guanti &middot; Caschi &middot; Grembiuli &middot; Respiratori &middot; Ghette</div></div></div>
+  <div class="toc-item reveal" onclick="goTo(12)"><div class="toc-nn">11</div><div><div class="toc-tt">RICAMBI + TIG</div><div class="toc-ss">Vetri &middot; Policarbonato &middot; Tungsteno &middot; Torce WP &middot; Kit</div></div></div>
+  <div class="toc-item reveal" onclick="goTo(13)"><div class="toc-nn">12</div><div><div class="toc-tt">SERVIZI + CONTATTI</div><div class="toc-ss">Consulenza &middot; Demo &middot; Formazione &middot; Noleggio</div></div></div>
 </div>
-
-<!-- PAG 3 MISSION -->
+<div class="pf"><span class="pfb">TECNOSALDO</span><span>www.tecnosaldo.it &middot; +39 393 4775160</span><span>pag. 2</span></div>
+</div>
 <div class="page" id="p2">
-  <div class="ph"><div class="ph-l"><div class="sn">01 · CHI SIAMO</div><div class="st">MISSION · TEAM · NOVITÀ 2026</div><div class="ss">Toscana · Liguria · Partner tecnico professionale</div></div><div class="logo-wrap logo-sm"><div class="logo-ic">⚡</div><div><div class="logo-nm">TECNOSALDO</div></div></div></div>
-  <div style="background:rgba(245,196,0,.04);border:1px solid rgba(245,196,0,.2);border-radius:5px;padding:3.5mm;margin-bottom:3mm;font-size:7.5pt;color:var(--text);line-height:1.7" class="reveal">Tecnosaldo nasce nel 2025 in Toscana dalla passione autentica per il mondo della saldatura professionale. Una realtà giovane, dinamica e fortemente orientata al cliente, con persone di esperienza storica nel settore. Non ci limitiamo a fornire prodotti: diventiamo partner tecnico di artigiani, officine meccaniche, carpenterie metalliche e impianti industriali. Ogni cliente ha un referente dedicato, una risposta rapida e una soluzione su misura.</div>
-  <div class="sd"><div class="ln"></div><div class="lb">VALORI FONDANTI</div><div class="ln"></div></div>
-  <div class="val-grid reveal"><div class="val-card"><span class="val-ic">🎯</span><div class="val-t">PRESENZA COSTANTE</div></div><div class="val-card"><span class="val-ic">🔧</span><div class="val-t">SUPPORTO TECNICO</div></div><div class="val-card"><span class="val-ic">🤝</span><div class="val-t">SERIETÀ</div></div><div class="val-card"><span class="val-ic">💡</span><div class="val-t">INNOVAZIONE</div></div><div class="val-card"><span class="val-ic">🌱</span><div class="val-t">SOSTENIBILITÀ</div></div><div class="val-card"><span class="val-ic">🔥</span><div class="val-t">PASSIONE</div></div></div>
-  <div class="sd"><div class="ln"></div><div class="lb">FIGURE STORICHE DEL SETTORE</div><div class="ln"></div></div>
-  <div class="hist-grid reveal"><div class="hc"><div class="hc-name">COSME</div><div class="hc-desc">Storica figura del welding toscano. Decenni sul campo hanno definito lo standard del "lavoro fatto bene" che Tecnosaldo riconosce come ispirazione fondante. La sua esperienza pratica e la capacità di risolvere ogni problema tecnico rappresentano il DNA operativo dell'azienda.</div></div><div class="hc"><div class="hc-name">TUBIPLASTIC</div><div class="hc-desc">Realtà industriale ligure-toscana. Anni di lavorazione metalli e approvvigionamento hanno formato le competenze professionali al cuore di Tecnosaldo. La profonda conoscenza dei materiali e dei processi industriali garantisce qualità e affidabilità in ogni fornitura.</div></div></div>
-  <div class="sd"><div class="ln"></div><div class="lb">IL TEAM</div><div class="ln"></div></div>
-  <div class="team-grid reveal"><div class="tm"><div class="tm-av">👤</div><div><div class="tm-n">Emanuele</div><div class="tm-r">SALES</div></div></div><div class="tm"><div class="tm-av">👤</div><div><div class="tm-n">Vincenzo</div><div class="tm-r">RESP. COMMERCIALE</div></div></div><div class="tm"><div class="tm-av">👤</div><div><div class="tm-n">Lorenzo</div><div class="tm-r">CONSEGNE</div></div></div><div class="tm"><div class="tm-av">👤</div><div><div class="tm-n">Achille</div><div class="tm-r">ACQUISTI</div></div></div><div class="tm"><div class="tm-av">👤</div><div><div class="tm-n">Edoardo</div><div class="tm-r">MAGAZZINO TECNICO</div></div></div><div class="tm"><div class="tm-av">👤</div><div><div class="tm-n">Marco</div><div class="tm-r">DIRETTORE GENERALE</div></div></div></div>
-  <div class="cobot reveal" style="margin-top:3mm"><div class="cobot-title">🤖 COBOT WELDING DIVISION <span class="cobot-new">NOVITÀ ASSOLUTA 2026</span></div><div class="cobot-body">Prima realtà in <strong>Toscana e Liguria</strong> a offrire saldatura collaborativa (cobot) chiavi in mano. Sistemi <strong>Miller Auto-Continuum</strong> e <strong>ESAB eMIG cobot-ready</strong> con bracci Universal Robots. Nessuna competenza robotica richiesta: installiamo, programmiamo e formiamo gli operatori. Ideale per PMI, carpenterie metalliche e officine. Produttività +40%, scarti -60%.</div></div>
-  <div class="pf"><span class="br">TECNOSALDO</span><span>www.tecnosaldo.it · +39 393 4775160</span><span>pag. 3</span></div>
+<div class="phdr"><span class="phb">TECNOSALDO</span><span class="phc">Distributore Ufficiale Miller Electric &middot; Toscana &amp; Liguria</span><span class="phr">CATALOGO PRODOTTI 2026</span></div>
+<div class="sh reveal"><div class="sh-n">01</div><div class="sh-t"><div class="sh-tt">CHI SIAMO</div><div class="sh-sub">Mission &middot; Valori &middot; Filosofia</div></div></div>
+<div style="background:rgba(245,196,0,.04);border:1px solid rgba(245,196,0,.18);border-radius:4px;padding:3mm;margin-bottom:2.5mm;font-size:7pt;color:var(--text);line-height:1.7" class="reveal">Tecnosaldo nasce nel 2025 in Toscana dalla passione autentica per il mondo della saldatura professionale. Una realt&agrave; giovane, dinamica e fortemente orientata al cliente, con persone di esperienza storica nel settore. Non ci limitiamo a fornire prodotti: diventiamo <strong style="color:var(--y)">partner tecnico</strong> di artigiani, officine meccaniche, carpenterie metalliche e impianti industriali. Ogni cliente ha un referente dedicato, una risposta rapida e una soluzione su misura.</div>
+<div class="dl"><div class="dln"></div><div class="dlb">VALORI FONDANTI</div><div class="dln"></div></div>
+<div class="val-grid reveal">
+  <div class="val-c"><span class="val-ic">&#127919;</span><div class="val-t">PRESENZA COSTANTE</div></div>
+  <div class="val-c"><span class="val-ic">&#128295;</span><div class="val-t">SUPPORTO TECNICO</div></div>
+  <div class="val-c"><span class="val-ic">&#129309;</span><div class="val-t">SERIET&Agrave;</div></div>
+  <div class="val-c"><span class="val-ic">&#128161;</span><div class="val-t">INNOVAZIONE</div></div>
+  <div class="val-c"><span class="val-ic">&#127807;</span><div class="val-t">SOSTENIBILIT&Agrave;</div></div>
+  <div class="val-c"><span class="val-ic">&#128293;</span><div class="val-t">PASSIONE</div></div>
 </div>
-
-<!-- PAG 4 MILLER MIG/TIG -->
+<div class="dl"><div class="dln"></div><div class="dlb">FIGURE STORICHE DEL SETTORE</div><div class="dln"></div></div>
+<div class="hist-g reveal">
+  <div class="hc"><div class="hc-nm">COSME</div><div class="hc-d">Storica figura del welding toscano. Decenni sul campo hanno definito lo standard del &ldquo;lavoro fatto bene&rdquo; che Tecnosaldo riconosce come ispirazione fondante. La sua esperienza pratica e la capacit&agrave; di risolvere ogni problema tecnico rappresentano il DNA operativo dell&apos;azienda.</div></div>
+  <div class="hc"><div class="hc-nm">TUBIPLASTIC</div><div class="hc-d">Realt&agrave; industriale ligure-toscana. Anni di lavorazione metalli e approvvigionamento hanno formato le competenze professionali al cuore di Tecnosaldo. La profonda conoscenza dei materiali e dei processi industriali garantisce qualit&agrave; e affidabilit&agrave; in ogni fornitura.</div></div>
+</div>
+<div class="dl"><div class="dln"></div><div class="dlb">IL TEAM</div><div class="dln"></div></div>
+<div class="team-grid reveal">
+  <div class="tm"><div class="tm-av">&#128100;</div><div><div class="tm-n">Emanuele</div><div class="tm-r">SALES</div></div></div>
+  <div class="tm"><div class="tm-av">&#128100;</div><div><div class="tm-n">Vincenzo</div><div class="tm-r">RESP. COMMERCIALE</div></div></div>
+  <div class="tm"><div class="tm-av">&#128100;</div><div><div class="tm-n">Lorenzo</div><div class="tm-r">CONSEGNE</div></div></div>
+  <div class="tm"><div class="tm-av">&#128100;</div><div><div class="tm-n">Achille</div><div class="tm-r">ACQUISTI</div></div></div>
+  <div class="tm"><div class="tm-av">&#128100;</div><div><div class="tm-n">Edoardo</div><div class="tm-r">MAGAZZINO TECNICO</div></div></div>
+  <div class="tm"><div class="tm-av">&#128100;</div><div><div class="tm-n">Marco</div><div class="tm-r">DIRETTORE GENERALE</div></div></div>
+</div>
+<div class="cobot reveal"><div class="cobt">&#129302; MILLER &amp; ESAB &mdash; COBOT WELDING DIVISION <span class="cobn">NOVIT&Agrave; 2026</span></div><div class="cobb">Prima realt&agrave; in <strong>Toscana e Liguria</strong> a offrire saldatura collaborativa (cobot) chiavi in mano. Sistemi <strong>Miller Auto-Continuum</strong> e <strong>ESAB eMIG cobot-ready</strong> con bracci Universal Robots. Nessuna competenza robotica richiesta: installiamo, programmiamo e formiamo gli operatori. Produttivit&agrave; +40%, scarti &minus;60%.</div></div>
+<div class="pf"><span class="pfb">TECNOSALDO</span><span>www.tecnosaldo.it &middot; +39 393 4775160</span><span>pag. 3</span></div>
+</div>
 <div class="page" id="p3">
-  <div class="ph"><div class="ph-l"><div class="sn">02 · MILLER ELECTRIC</div><div class="st">SALDATRICI MIG / TIG</div><div class="ss">Deltaweld · Continuum · Dynasty · Syncrowave</div></div><div class="logo-wrap logo-sm"><div class="logo-ic">⚡</div><div><div class="logo-nm">TECNOSALDO</div></div></div></div>
-  <div class="sd"><div class="ln"></div><div class="lb">DELTAWELD &amp; CONTINUUM — MIG/MAG INDUSTRIALE</div><div class="ln"></div></div>
-  <div class="grid g3 reveal" style="margin-bottom:2.5mm">
-    <div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">▶ flip</div><div class="pc-code">907694</div><div class="pc-name">Deltaweld 350</div><div class="pc-desc">MIG/MAG 350A. Arco stabile, ideale carpenteria medio-pesante. Auto-Set parametri automatici.</div><div class="pc-tags"><span class="tag y">MIG/MAG</span><span class="tag ">350A · 3F</span><span class="tag ">MILLER</span></div></div><div class="fc-b"><div class="pc-code">907694</div><div class="pc-name">Deltaweld 350</div><div class="pc-desc">Corrente 30–350A. Tensione 10–34V. Ciclo 60% a 350A. 400V 3F. Peso 43kg. Wire feed 1.3–19m/min. Bobine 15kg. Forza arco regolabile.</div><div class="pc-tags"><span class="tag y">907694</span><span class="tag ">400V · 43KG</span></div><div class="fc-qr"><canvas class="fc-qr-c" width="44" height="44" data-url="https://www.tecnosaldo.it/?q=907694" style="border-radius:3px;background:#fff;padding:2px;display:block"></canvas></div></div></div></div>
-    <div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">▶ flip</div><div class="pc-code">951775</div><div class="pc-name">Deltaweld 500</div><div class="pc-desc">MIG/MAG 500A pesante. Alta efficienza termica, ciclo duty elevato, Accu-Pulse.</div><div class="pc-tags"><span class="tag y">MIG/MAG</span><span class="tag ">500A · 3F</span><span class="tag ">MILLER</span></div></div><div class="fc-b"><div class="pc-code">951775</div><div class="pc-name">Deltaweld 500</div><div class="pc-desc">Corrente 30–500A. Ciclo 100% a 400A. 400V 3F. Peso 65kg. Accu-Pulse integrato. Wire feed 1.3–19m/min. Display touchscreen.</div><div class="pc-tags"><span class="tag y">951775</span><span class="tag ">500A · 100%</span></div><div class="fc-qr"><canvas class="fc-qr-c" width="44" height="44" data-url="https://www.tecnosaldo.it/?q=951775" style="border-radius:3px;background:#fff;padding:2px;display:block"></canvas></div></div></div></div>
-    <div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">▶ flip</div><div class="pc-code">951448</div><div class="pc-name">Continuum 350</div><div class="pc-desc">MIG/MAG 350A con Insight Core. Monitoraggio avanzato del processo welding.</div><div class="pc-tags"><span class="tag y">MIG/MAG</span><span class="tag ">350A</span><span class="tag ">CONTINUUM</span></div></div><div class="fc-b"><div class="pc-code">951448</div><div class="pc-name">Continuum 350</div><div class="pc-desc">30–350A. Insight Core analytics. Porta USB. Display LCD. 4 programmi WPS. 400V 3F. Ciclo 60% a 350A. Wi-Fi opzionale.</div><div class="pc-tags"><span class="tag y">951448</span><span class="tag ">INSIGHT CORE</span></div><div class="fc-qr"><canvas class="fc-qr-c" width="44" height="44" data-url="https://www.tecnosaldo.it/?q=951448" style="border-radius:3px;background:#fff;padding:2px;display:block"></canvas></div></div></div></div>
-  </div>
-  <div class="grid g3 reveal" style="margin-bottom:2.5mm">
-    <div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">▶ flip</div><div class="pc-code">951449</div><div class="pc-name">Continuum 500</div><div class="pc-desc">MIG/MAG 500A smart. Insight Core, monitoraggio real-time, cobot-ready.</div><div class="pc-tags"><span class="tag y">MIG/MAG</span><span class="tag ">500A · SMART</span></div></div><div class="fc-b"><div class="pc-code">951449</div><div class="pc-name">Continuum 500</div><div class="pc-desc">30–500A. 100% ciclo a 400A. Insight Core + ethernet. Cloud updates. 400V 3F. Cobot-ready. Display touch 7&quot;.</div><div class="pc-tags"><span class="tag y">951449</span><span class="tag ">COBOT-READY</span></div><div class="fc-qr"><canvas class="fc-qr-c" width="44" height="44" data-url="https://www.tecnosaldo.it/?q=951449" style="border-radius:3px;background:#fff;padding:2px;display:block"></canvas></div></div></div></div>
-    <div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">▶ flip</div><div class="pc-code">951066</div><div class="pc-name">Dynasty 210 DX</div><div class="pc-desc">TIG AC/DC 210A compatto. Frequenza AC 20–400Hz, portabile 10kg.</div><div class="pc-tags"><span class="tag y">TIG AC/DC</span><span class="tag ">210A · MMA</span></div></div><div class="fc-b"><div class="pc-code">951066</div><div class="pc-name">Dynasty 210 DX</div><div class="pc-desc">TIG AC/DC + MMA. 230V/400V. 10–210A TIG, 15–185A MMA. Freq. AC 20–400Hz. Bilanciamento 30–99%. 10kg. HF.</div><div class="pc-tags"><span class="tag y">951066</span><span class="tag ">10KG · 1/3F</span></div><div class="fc-qr"><canvas class="fc-qr-c" width="44" height="44" data-url="https://www.tecnosaldo.it/?q=951066" style="border-radius:3px;background:#fff;padding:2px;display:block"></canvas></div></div></div></div>
-    <div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">▶ flip</div><div class="pc-code">907686</div><div class="pc-name">Dynasty 300 DX</div><div class="pc-desc">TIG AC/DC 300A. Controllo forma d'onda avanzato per alluminio e inox.</div><div class="pc-tags"><span class="tag y">TIG AC/DC</span><span class="tag ">300A · ADV</span></div></div><div class="fc-b"><div class="pc-code">907686</div><div class="pc-name">Dynasty 300 DX</div><div class="pc-desc">TIG AC/DC 300A. MMA 250A. 400V 3F. Freq. 20–400Hz. Squarewave/Sinewave/Advanced. Auto-Calc Al. 28kg.</div><div class="pc-tags"><span class="tag y">907686</span><span class="tag ">300A · 28KG</span></div><div class="fc-qr"><canvas class="fc-qr-c" width="44" height="44" data-url="https://www.tecnosaldo.it/?q=907686" style="border-radius:3px;background:#fff;padding:2px;display:block"></canvas></div></div></div></div>
-  </div>
-  <div class="grid g3 reveal">
-    <div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">▶ flip</div><div class="pc-code">907687</div><div class="pc-name">Dynasty 400 DX</div><div class="pc-desc">TIG AC/DC 400A industriale. Per nichel, titanio, alluminio spesso.</div><div class="pc-tags"><span class="tag y">TIG AC/DC</span><span class="tag ">400A · INDU</span></div></div><div class="fc-b"><div class="pc-code">907687</div><div class="pc-name">Dynasty 400 DX</div><div class="pc-desc">TIG AC/DC 400A. MMA 350A. 400V 3F. 100% ciclo 250A. Raffreddamento liquido. 47kg. RFCS-RJ45.</div><div class="pc-tags"><span class="tag y">907687</span><span class="tag ">400A · 47KG</span></div><div class="fc-qr"><canvas class="fc-qr-c" width="44" height="44" data-url="https://www.tecnosaldo.it/?q=907687" style="border-radius:3px;background:#fff;padding:2px;display:block"></canvas></div></div></div></div>
-    <div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">▶ flip</div><div class="pc-code">903604</div><div class="pc-name">Dynasty 800</div><div class="pc-desc">TIG AC/DC 800A ultra-heavy. Parallelo fino a 3 unità per 2400A.</div><div class="pc-tags"><span class="tag y">TIG AC/DC</span><span class="tag ">800A · HEAVY</span></div></div><div class="fc-b"><div class="pc-code">903604</div><div class="pc-name">Dynasty 800</div><div class="pc-desc">TIG AC/DC 800A. MMA 700A. 400V 3F. 100% ciclo 600A. Parallelo ×3 = 2400A. 82kg. Aerospace.</div><div class="pc-tags"><span class="tag y">903604</span><span class="tag ">800A · 82KG</span></div><div class="fc-qr"><canvas class="fc-qr-c" width="44" height="44" data-url="https://www.tecnosaldo.it/?q=903604" style="border-radius:3px;background:#fff;padding:2px;display:block"></canvas></div></div></div></div>
-    <div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">▶ flip</div><div class="pc-code">907682</div><div class="pc-name">Syncrowave 300</div><div class="pc-desc">TIG AC/DC classico 300A. Affidabilità leggendaria Miller per alluminio.</div><div class="pc-tags"><span class="tag y">TIG AC/DC</span><span class="tag ">300A · SYNC</span></div></div><div class="fc-b"><div class="pc-code">907682</div><div class="pc-name">Syncrowave 300</div><div class="pc-desc">TIG AC/DC 300A. MMA 230A. 400V 3F. Bilanciamento 0–100%. HF. Touchstart opzionale. 57kg.</div><div class="pc-tags"><span class="tag y">907682</span><span class="tag ">300A · 57KG</span></div><div class="fc-qr"><canvas class="fc-qr-c" width="44" height="44" data-url="https://www.tecnosaldo.it/?q=907682" style="border-radius:3px;background:#fff;padding:2px;display:block"></canvas></div></div></div></div>
-  </div>
-  <div class="pf"><span class="br">TECNOSALDO</span><span>www.tecnosaldo.it · +39 393 4775160</span><span>pag. 4</span></div>
+<div class="phdr"><span class="phb">TECNOSALDO</span><span class="phc">02 &middot; Impianti Miller Electric &middot; MIG/TIG</span><span class="phr">CATALOGO PRODOTTI 2026</span></div>
+<div class="sh reveal"><div class="sh-n">02</div><div class="sh-t"><div class="sh-tt">MILLER ELECTRIC &mdash; MIG / TIG</div><div class="sh-sub">Deltaweld &middot; Continuum &middot; Dynasty &middot; Syncrowave</div></div></div>
+<div class="dl"><div class="dln"></div><div class="dlb">DELTAWELD &amp; CONTINUUM &mdash; MIG/MAG INDUSTRIALE</div><div class="dln"></div></div>
+<div class="grid g3 reveal" style="margin-bottom:2.5mm">
+<div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">&#9654; FLIP</div><div class="fc-cb">907694</div><div class="fc-body"><div class="fc-n">Deltaweld 350</div><div class="fc-d">MIG/MAG 350A. Arco stabile, carpenteria medio-pesante. Auto-Set parametri automatici.</div><div class="fc-t">MIG/MAG &middot; 350A &middot; 3F &middot; MILLER</div></div></div><div class="fc-b"><div class="fc-cb" style="color:#44ff88">907694</div><div class="fc-body"><div class="fc-n">Deltaweld 350</div><div class="fc-d">30&ndash;350A. Tensione 10&ndash;34V. Ciclo 60% a 350A. 400V 3F. 43kg. Wire feed 1.3&ndash;19m/min. Bobine 15kg.</div><div class="fc-t">907694 &middot; 400V &middot; 43KG</div><div class="fc-qr"><canvas class="fc-qrc" width="50" height="50" data-url="https://www.tecnosaldo.it/?q=907694"></canvas></div></div></div></div></div>
+<div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">&#9654; FLIP</div><div class="fc-cb">951775</div><div class="fc-body"><div class="fc-n">Deltaweld 500</div><div class="fc-d">MIG/MAG 500A pesante. Alta efficienza termica, ciclo duty elevato, Accu-Pulse.</div><div class="fc-t">MIG/MAG &middot; 500A &middot; 3F &middot; MILLER</div></div></div><div class="fc-b"><div class="fc-cb" style="color:#44ff88">951775</div><div class="fc-body"><div class="fc-n">Deltaweld 500</div><div class="fc-d">30&ndash;500A. Ciclo 100% a 400A. 400V 3F. 65kg. Accu-Pulse integrato. Wire feed 1.3&ndash;19m/min.</div><div class="fc-t">951775 &middot; 500A &middot; 100%</div><div class="fc-qr"><canvas class="fc-qrc" width="50" height="50" data-url="https://www.tecnosaldo.it/?q=951775"></canvas></div></div></div></div></div>
+<div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">&#9654; FLIP</div><div class="fc-cb">951448</div><div class="fc-body"><div class="fc-n">Continuum 350</div><div class="fc-d">MIG/MAG 350A con Insight Core. Monitoraggio avanzato del processo welding.</div><div class="fc-t">MIG/MAG &middot; 350A &middot; CONTINUUM</div></div></div><div class="fc-b"><div class="fc-cb" style="color:#44ff88">951448</div><div class="fc-body"><div class="fc-n">Continuum 350</div><div class="fc-d">30&ndash;350A. Insight Core analytics. Porta USB. Display LCD. 4 programmi WPS. 400V 3F.</div><div class="fc-t">951448 &middot; INSIGHT CORE</div><div class="fc-qr"><canvas class="fc-qrc" width="50" height="50" data-url="https://www.tecnosaldo.it/?q=951448"></canvas></div></div></div></div></div>
 </div>
-
-<!-- PAG 5 MILLER MMA + COBOT -->
+<div class="grid g3 reveal" style="margin-bottom:2.5mm">
+<div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">&#9654; FLIP</div><div class="fc-cb">951449</div><div class="fc-body"><div class="fc-n">Continuum 500</div><div class="fc-d">MIG/MAG 500A smart. Insight Core, monitoraggio real-time, cobot-ready.</div><div class="fc-t">MIG/MAG &middot; 500A &middot; SMART</div></div></div><div class="fc-b"><div class="fc-cb" style="color:#44ff88">951449</div><div class="fc-body"><div class="fc-n">Continuum 500</div><div class="fc-d">30&ndash;500A. 100% ciclo a 400A. Insight Core + ethernet. Cloud updates. 400V 3F. Cobot-ready.</div><div class="fc-t">951449 &middot; COBOT-READY</div><div class="fc-qr"><canvas class="fc-qrc" width="50" height="50" data-url="https://www.tecnosaldo.it/?q=951449"></canvas></div></div></div></div></div>
+<div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">&#9654; FLIP</div><div class="fc-cb">951066</div><div class="fc-body"><div class="fc-n">Dynasty 210 DX</div><div class="fc-d">TIG AC/DC 210A compatto. Frequenza AC 20&ndash;400Hz, portabile 10kg.</div><div class="fc-t">TIG AC/DC &middot; 210A &middot; MMA</div></div></div><div class="fc-b"><div class="fc-cb" style="color:#44ff88">951066</div><div class="fc-body"><div class="fc-n">Dynasty 210 DX</div><div class="fc-d">TIG AC/DC + MMA. 230V/400V. 10&ndash;210A TIG. Freq. AC 20&ndash;400Hz. Bilanciamento 30&ndash;99%. 10kg. HF.</div><div class="fc-t">951066 &middot; 10KG &middot; 1/3F</div><div class="fc-qr"><canvas class="fc-qrc" width="50" height="50" data-url="https://www.tecnosaldo.it/?q=951066"></canvas></div></div></div></div></div>
+<div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">&#9654; FLIP</div><div class="fc-cb">907686</div><div class="fc-body"><div class="fc-n">Dynasty 300 DX</div><div class="fc-d">TIG AC/DC 300A. Controllo forma d&apos;onda avanzato per alluminio e inox.</div><div class="fc-t">TIG AC/DC &middot; 300A &middot; ADV</div></div></div><div class="fc-b"><div class="fc-cb" style="color:#44ff88">907686</div><div class="fc-body"><div class="fc-n">Dynasty 300 DX</div><div class="fc-d">TIG AC/DC 300A. MMA 250A. 400V 3F. Freq. 20&ndash;400Hz. Squarewave/Sinewave/Advanced. 28kg.</div><div class="fc-t">907686 &middot; 300A &middot; 28KG</div><div class="fc-qr"><canvas class="fc-qrc" width="50" height="50" data-url="https://www.tecnosaldo.it/?q=907686"></canvas></div></div></div></div></div>
+</div>
+<div class="grid g3 reveal">
+<div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">&#9654; FLIP</div><div class="fc-cb">907687</div><div class="fc-body"><div class="fc-n">Dynasty 400 DX</div><div class="fc-d">TIG AC/DC 400A industriale. Per nichel, titanio, alluminio spesso.</div><div class="fc-t">TIG AC/DC &middot; 400A &middot; INDU</div></div></div><div class="fc-b"><div class="fc-cb" style="color:#44ff88">907687</div><div class="fc-body"><div class="fc-n">Dynasty 400 DX</div><div class="fc-d">TIG AC/DC 400A. MMA 350A. 400V 3F. 100% ciclo 250A. Raffreddamento liquido. 47kg. RFCS-RJ45.</div><div class="fc-t">907687 &middot; 400A &middot; 47KG</div><div class="fc-qr"><canvas class="fc-qrc" width="50" height="50" data-url="https://www.tecnosaldo.it/?q=907687"></canvas></div></div></div></div></div>
+<div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">&#9654; FLIP</div><div class="fc-cb">903604</div><div class="fc-body"><div class="fc-n">Dynasty 800</div><div class="fc-d">TIG AC/DC 800A ultra-heavy. Parallelo fino a 3 unit&agrave; per 2400A.</div><div class="fc-t">TIG AC/DC &middot; 800A &middot; HEAVY</div></div></div><div class="fc-b"><div class="fc-cb" style="color:#44ff88">903604</div><div class="fc-body"><div class="fc-n">Dynasty 800</div><div class="fc-d">TIG AC/DC 800A. MMA 700A. 400V 3F. 100% ciclo 600A. Parallelo &times;3 = 2400A. 82kg. Aerospace.</div><div class="fc-t">903604 &middot; 800A &middot; 82KG</div><div class="fc-qr"><canvas class="fc-qrc" width="50" height="50" data-url="https://www.tecnosaldo.it/?q=903604"></canvas></div></div></div></div></div>
+<div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">&#9654; FLIP</div><div class="fc-cb">907682</div><div class="fc-body"><div class="fc-n">Syncrowave 300</div><div class="fc-d">TIG AC/DC classico 300A. Affidabilit&agrave; leggendaria Miller per alluminio.</div><div class="fc-t">TIG AC/DC &middot; 300A &middot; SYNC</div></div></div><div class="fc-b"><div class="fc-cb" style="color:#44ff88">907682</div><div class="fc-body"><div class="fc-n">Syncrowave 300</div><div class="fc-d">TIG AC/DC 300A. MMA 230A. 400V 3F. Bilanciamento 0&ndash;100%. HF. Touchstart opzionale. 57kg.</div><div class="fc-t">907682 &middot; 300A &middot; 57KG</div><div class="fc-qr"><canvas class="fc-qrc" width="50" height="50" data-url="https://www.tecnosaldo.it/?q=907682"></canvas></div></div></div></div></div>
+</div>
+<div class="pf"><span class="pfb">TECNOSALDO</span><span>www.tecnosaldo.it &middot; +39 393 4775160</span><span>pag. 4</span></div>
+</div>
 <div class="page" id="p4">
-  <div class="ph"><div class="ph-l"><div class="sn">03 · MILLER ELECTRIC</div><div class="st">MMA · SUBARC · COBOT WELDING</div><div class="ss">Maxstar · XMT · SubArc 1250 · Cobot Miller</div></div><div class="logo-wrap logo-sm"><div class="logo-ic">⚡</div><div><div class="logo-nm">TECNOSALDO</div></div></div></div>
-  <div class="sd"><div class="ln"></div><div class="lb">MAXSTAR — MMA INVERTER</div><div class="ln"></div></div>
-  <div class="grid g3 reveal" style="margin-bottom:2.5mm">
-    <div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">▶ flip</div><div class="pc-code">907514</div><div class="pc-name">Maxstar 210 DX</div><div class="pc-desc">MMA/TIG DC 210A compatto 8.2kg. Cantiere e lavori in quota.</div><div class="pc-tags"><span class="tag y">MMA/TIG DC</span><span class="tag ">210A · 8.2KG</span></div></div><div class="fc-b"><div class="pc-code">907514</div><div class="pc-name">Maxstar 210 DX</div><div class="pc-desc">MMA 15–210A. TIG DC 5–210A. 230V/400V. Ciclo 60% a 210A. 8.2kg. Arc Control, Hot Start, Dig. IP23.</div><div class="pc-tags"><span class="tag y">907514</span><span class="tag ">8.2KG · IP23</span></div><div class="fc-qr"><canvas class="fc-qr-c" width="44" height="44" data-url="https://www.tecnosaldo.it/?q=907514" style="border-radius:3px;background:#fff;padding:2px;display:block"></canvas></div></div></div></div>
-    <div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">▶ flip</div><div class="pc-code">907515</div><div class="pc-name">Maxstar 280 DX</div><div class="pc-desc">MMA/TIG DC 280A. Per inox e acciaio. Alta stabilità.</div><div class="pc-tags"><span class="tag y">MMA/TIG DC</span><span class="tag ">280A · INOX</span></div></div><div class="fc-b"><div class="pc-code">907515</div><div class="pc-name">Maxstar 280 DX</div><div class="pc-desc">MMA 15–280A. TIG DC 5–280A. 400V 3F. Ciclo 60% a 280A. 14kg. Dig regolabile. Parametri memorizzabili.</div><div class="pc-tags"><span class="tag y">907515</span><span class="tag ">14KG · 3F</span></div><div class="fc-qr"><canvas class="fc-qr-c" width="44" height="44" data-url="https://www.tecnosaldo.it/?q=907515" style="border-radius:3px;background:#fff;padding:2px;display:block"></canvas></div></div></div></div>
-    <div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">▶ flip</div><div class="pc-code">907516</div><div class="pc-name">Maxstar 400</div><div class="pc-desc">MMA/TIG DC 400A industriale. Massima penetrazione, grandi diametri.</div><div class="pc-tags"><span class="tag y">MMA/TIG DC</span><span class="tag ">400A · HEAVY</span></div></div><div class="fc-b"><div class="pc-code">907516</div><div class="pc-name">Maxstar 400</div><div class="pc-desc">MMA 20–400A. TIG DC 5–400A. 400V 3F. Ciclo 60% a 400A. 24kg. Ø 6.3mm. Pulsato DC. Ruote incluse.</div><div class="pc-tags"><span class="tag y">907516</span><span class="tag ">400A · 24KG</span></div><div class="fc-qr"><canvas class="fc-qr-c" width="44" height="44" data-url="https://www.tecnosaldo.it/?q=907516" style="border-radius:3px;background:#fff;padding:2px;display:block"></canvas></div></div></div></div>
-  </div>
-  <div class="grid g2 reveal" style="margin-bottom:2.5mm">
-    <div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">▶ flip</div><div class="pc-code">907682</div><div class="pc-name">XMT 350 CC/CV</div><div class="pc-desc">Multiprocesso CC/CV 350A. MIG, MMA, TIG DC, gouging. Il più versatile.</div><div class="pc-tags"><span class="tag y">MULTIPROCESSO</span><span class="tag ">350A · CC/CV</span></div></div><div class="fc-b"><div class="pc-code">907682</div><div class="pc-name">XMT 350 CC/CV</div><div class="pc-desc">CC/CV 350A. MIG/MMA/TIG/Gouging. 400V 3F. Ciclo 100% a 280A. 24kg. ArcControl, Auto-Remote.</div><div class="pc-tags"><span class="tag y">907682</span><span class="tag ">CC/CV · 24KG</span></div><div class="fc-qr"><canvas class="fc-qr-c" width="44" height="44" data-url="https://www.tecnosaldo.it/?q=907682" style="border-radius:3px;background:#fff;padding:2px;display:block"></canvas></div></div></div></div>
-    <div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">▶ flip</div><div class="pc-code">907818</div><div class="pc-name">SubArc 1250 AC/DC</div><div class="pc-desc">Arco sommerso 1250A. Piena penetrazione su grandi spessori e strutture navali.</div><div class="pc-tags"><span class="tag y">SUBARC</span><span class="tag ">1250A · AC/DC</span></div></div><div class="fc-b"><div class="pc-code">907818</div><div class="pc-name">SubArc 1250 AC/DC</div><div class="pc-desc">Arco sommerso AC/DC 1250A. 100% ciclo a 1000A AC. 400V 3F. Sistemi tandem opzionali. Piping e navale.</div><div class="pc-tags"><span class="tag y">907818</span><span class="tag ">1250A · 100%</span></div><div class="fc-qr"><canvas class="fc-qr-c" width="44" height="44" data-url="https://www.tecnosaldo.it/?q=907818" style="border-radius:3px;background:#fff;padding:2px;display:block"></canvas></div></div></div></div>
-  </div>
-  <div class="cobot reveal"><div class="cobot-title">🤖 MILLER COBOT WELDING — AUTO-CONTINUUM <span class="cobot-new">NOVITÀ 2026</span></div><div class="cobot-body">Tecnosaldo distribuisce il sistema <strong>Miller Auto-Continuum</strong> cobot-ready. Integrazione nativa con Universal Robots (UR5e, UR10e, UR16e) tramite Miller FieldBus. Lead-through programming: <strong>nessuna competenza robotica richiesta</strong>. Setup completo chiavi in mano: sopralluogo, installazione, qualifica WPS, formazione operatori. Ideale per carpenterie con lotti ripetitivi. Produttività +40%, scarti -60%.</div></div>
-  <div class="pf"><span class="br">TECNOSALDO</span><span>www.tecnosaldo.it · +39 393 4775160</span><span>pag. 5</span></div>
+<div class="phdr"><span class="phb">TECNOSALDO</span><span class="phc">03 &middot; Miller Electric &middot; MMA &middot; SubArc &middot; Cobot</span><span class="phr">CATALOGO PRODOTTI 2026</span></div>
+<div class="sh reveal"><div class="sh-n">03</div><div class="sh-t"><div class="sh-tt">MILLER MMA &middot; SUBARC &middot; COBOT</div><div class="sh-sub">Maxstar &middot; XMT &middot; SubArc 1250 &middot; Cobot Miller</div></div></div>
+<div class="dl"><div class="dln"></div><div class="dlb">MAXSTAR &mdash; MMA INVERTER</div><div class="dln"></div></div>
+<div class="grid g3 reveal" style="margin-bottom:2.5mm">
+<div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">&#9654; FLIP</div><div class="fc-cb">907514</div><div class="fc-body"><div class="fc-n">Maxstar 210 DX</div><div class="fc-d">MMA/TIG DC 210A compatto 8.2kg. Cantiere e lavori in quota.</div><div class="fc-t">MMA/TIG DC &middot; 210A &middot; 8.2KG</div></div></div><div class="fc-b"><div class="fc-cb" style="color:#44ff88">907514</div><div class="fc-body"><div class="fc-n">Maxstar 210 DX</div><div class="fc-d">MMA 15&ndash;210A. TIG DC 5&ndash;210A. 230V/400V. Ciclo 60% a 210A. 8.2kg. Arc Control, Hot Start. IP23.</div><div class="fc-t">907514 &middot; 8.2KG &middot; IP23</div><div class="fc-qr"><canvas class="fc-qrc" width="50" height="50" data-url="https://www.tecnosaldo.it/?q=907514"></canvas></div></div></div></div></div>
+<div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">&#9654; FLIP</div><div class="fc-cb">907515</div><div class="fc-body"><div class="fc-n">Maxstar 280 DX</div><div class="fc-d">MMA/TIG DC 280A. Per inox e acciaio. Alta stabilit&agrave;.</div><div class="fc-t">MMA/TIG DC &middot; 280A &middot; INOX</div></div></div><div class="fc-b"><div class="fc-cb" style="color:#44ff88">907515</div><div class="fc-body"><div class="fc-n">Maxstar 280 DX</div><div class="fc-d">MMA 15&ndash;280A. TIG DC 5&ndash;280A. 400V 3F. Ciclo 60% a 280A. 14kg. Dig regolabile.</div><div class="fc-t">907515 &middot; 14KG &middot; 3F</div><div class="fc-qr"><canvas class="fc-qrc" width="50" height="50" data-url="https://www.tecnosaldo.it/?q=907515"></canvas></div></div></div></div></div>
+<div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">&#9654; FLIP</div><div class="fc-cb">907516</div><div class="fc-body"><div class="fc-n">Maxstar 400</div><div class="fc-d">MMA/TIG DC 400A industriale. Massima penetrazione, grandi diametri.</div><div class="fc-t">MMA/TIG DC &middot; 400A &middot; HEAVY</div></div></div><div class="fc-b"><div class="fc-cb" style="color:#44ff88">907516</div><div class="fc-body"><div class="fc-n">Maxstar 400</div><div class="fc-d">MMA 20&ndash;400A. TIG DC 5&ndash;400A. 400V 3F. Ciclo 60% a 400A. 24kg. &Oslash; 6.3mm. Pulsato DC.</div><div class="fc-t">907516 &middot; 400A &middot; 24KG</div><div class="fc-qr"><canvas class="fc-qrc" width="50" height="50" data-url="https://www.tecnosaldo.it/?q=907516"></canvas></div></div></div></div></div>
 </div>
-
-<!-- PAG 6 ELGA -->
+<div class="grid g2 reveal" style="margin-bottom:2.5mm">
+<div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">&#9654; FLIP</div><div class="fc-cb">907682</div><div class="fc-body"><div class="fc-n">XMT 350 CC/CV</div><div class="fc-d">Multiprocesso CC/CV 350A. MIG, MMA, TIG DC, gouging. Il pi&ugrave; versatile.</div><div class="fc-t">MULTIPROCESSO &middot; 350A &middot; CC/CV</div></div></div><div class="fc-b"><div class="fc-cb" style="color:#44ff88">907682</div><div class="fc-body"><div class="fc-n">XMT 350 CC/CV</div><div class="fc-d">CC/CV 350A. MIG/MMA/TIG/Gouging. 400V 3F. Ciclo 100% a 280A. 24kg. ArcControl, Auto-Remote.</div><div class="fc-t">907682 &middot; CC/CV &middot; 24KG</div><div class="fc-qr"><canvas class="fc-qrc" width="50" height="50" data-url="https://www.tecnosaldo.it/?q=907682"></canvas></div></div></div></div></div>
+<div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">&#9654; FLIP</div><div class="fc-cb">907818</div><div class="fc-body"><div class="fc-n">SubArc 1250 AC/DC</div><div class="fc-d">Arco sommerso 1250A. Piena penetrazione su grandi spessori e strutture navali.</div><div class="fc-t">SUBARC &middot; 1250A &middot; AC/DC</div></div></div><div class="fc-b"><div class="fc-cb" style="color:#44ff88">907818</div><div class="fc-body"><div class="fc-n">SubArc 1250 AC/DC</div><div class="fc-d">Arco sommerso AC/DC 1250A. 100% ciclo a 1000A AC. 400V 3F. Sistemi tandem opzionali.</div><div class="fc-t">907818 &middot; 1250A &middot; 100%</div><div class="fc-qr"><canvas class="fc-qrc" width="50" height="50" data-url="https://www.tecnosaldo.it/?q=907818"></canvas></div></div></div></div></div>
+</div>
+<div class="cobot reveal"><div class="cobt">&#129302; MILLER &mdash; AUTO-CONTINUUM COBOT WELDING <span class="cobn">NOVIT&Agrave; 2026</span></div><div class="cobb">Tecnosaldo distribuisce il sistema <strong>Miller Auto-Continuum</strong> cobot-ready. Integrazione nativa con Universal Robots (UR5e, UR10e, UR16e) tramite Miller FieldBus. Lead-through programming: <strong>nessuna competenza robotica richiesta</strong>. Setup completo chiavi in mano: sopralluogo, installazione, qualifica WPS, formazione operatori. Produttivit&agrave; +40%, scarti &minus;60%.</div></div>
+<div class="pf"><span class="pfb">TECNOSALDO</span><span>www.tecnosaldo.it &middot; +39 393 4775160</span><span>pag. 5</span></div>
+</div>
 <div class="page" id="p5">
-  <div class="ph"><div class="ph-l"><div class="sn">04 · ELGA CONSUMABILI</div><div class="st">ELETTRODI · FILI · TIG ELGA</div><div class="ss">Prestige · Limarosta · Probond · Supercore · Aristig</div></div><div class="logo-wrap logo-sm"><div class="logo-ic">⚡</div><div><div class="logo-nm">TECNOSALDO</div></div></div></div>
-  <div class="elga-banner reveal"><div class="elga-logo">ELGA</div><div style="font-size:7pt;color:var(--muted);line-height:1.4">Consumabili alta qualità. Distributore ufficiale Tecnosaldo — Toscana &amp; Liguria.<br>Gamma completa: elettrodi MMA, fili MIG, animati, bacchette TIG in acciaio e inox.</div></div>
-  <div class="sd"><div class="ln"></div><div class="lb">ELETTRODI MMA ELGA</div><div class="ln"></div></div>
-  <div class="grid g3 reveal" style="margin-bottom:2.5mm">
-    <div class="pc"><div class="pc-code">E7018-P46</div><div class="pc-name">ELGA Prestige 46</div><div class="pc-desc">Basico basso idrogeno H5. Acciaio al carbonio e basso-legato. EN ISO 2560: E 46 4 B 42 H5. Ø 2.5–5.0mm. DC+/AC. RM 550MPa.</div><div class="pc-tags"><span class="tag y">MMA BASICO</span><span class="tag ">E7018 · H5</span><span class="tag g">ELGA</span></div></div>
-    <div class="pc"><div class="pc-code">E308L-LIM</div><div class="pc-name">ELGA Limarosta 308L</div><div class="pc-desc">Rutilico inox 308L per 304/304L. EN ISO 3581: E 19 9 L R. Ø 2.0–4.0mm. DC+. Scoria facilmente rimuovibile. Finish lucido.</div><div class="pc-tags"><span class="tag y">MMA INOX</span><span class="tag ">308L · RUTILIC</span><span class="tag g">ELGA</span></div></div>
-    <div class="pc"><div class="pc-code">E316L-LIM</div><div class="pc-name">ELGA Limarosta 316L</div><div class="pc-desc">Inox 316L+Mo. Massima resistenza a corrosione marina e chimica. EN ISO 3581: E 19 12 3 L R. Ø 2.0–4.0mm. DC+.</div><div class="pc-tags"><span class="tag y">MMA INOX</span><span class="tag ">316L · Mo</span><span class="tag g">ELGA</span></div></div>
-  </div>
-  <div class="sd"><div class="ln"></div><div class="lb">FILI MIG E ANIMATI ELGA</div><div class="ln"></div></div>
-  <div class="grid g3 reveal" style="margin-bottom:2.5mm">
-    <div class="pc"><div class="pc-code">SG2-PRO6</div><div class="pc-name">ELGA Probond 6 SG2</div><div class="pc-desc">Filo MIG Cu-ramato SG2. EN ISO 14341: G 46 4 M21 3Si1. Ø 0.8–1.6mm. RM 560MPa. Strato Cu uniforme, schizzi ridotti.</div><div class="pc-tags"><span class="tag y">FILO MIG</span><span class="tag ">SG2 · CU</span><span class="tag g">ELGA</span></div></div>
-    <div class="pc"><div class="pc-code">SC71-SUPER</div><div class="pc-name">ELGA Supercore 71</div><div class="pc-desc">Animato rutilico E71T-1. Produttività +35% vs SG2. EN ISO 17632: T 46 4 T1-1. Ø 1.2–1.6mm. Gas C1 o M21.</div><div class="pc-tags"><span class="tag y">FILO ANIMATO</span><span class="tag ">E71T-1</span><span class="tag g">ELGA</span></div></div>
-    <div class="pc"><div class="pc-code">TIG-ARIST</div><div class="pc-name">ELGA Aristig TIG Inox</div><div class="pc-desc">Bacchette TIG 308L e 316L. Alta purezza &gt;99.9%. Ø 1.6–3.2mm, L=1000mm. Gas Ar. Basso ossido. Conf. 5kg.</div><div class="pc-tags"><span class="tag y">TIG INOX</span><span class="tag ">308L/316L</span><span class="tag g">ELGA</span></div></div>
-  </div>
-  <div style="background:rgba(68,255,136,.04);border:1px solid rgba(68,255,136,.2);border-radius:5px;padding:3mm;margin-top:2mm" class="reveal">
-    <div style="font-family:'IBM Plex Mono',monospace;font-size:7pt;color:var(--green);font-weight:700;letter-spacing:1px;margin-bottom:1.5mm">✦ PERCHÉ SCEGLIERE ELGA</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2mm;font-size:6.8pt;color:var(--muted);line-height:1.5"><div>🏭 Produzione europea certificata EN ISO 9001 e 14001</div><div>🔬 Composizione chimica tracciata per lotto con certificato 3.1</div><div>📦 Pronta consegna dal magazzino Tecnosaldo in Toscana</div></div>
-  </div>
-  <div class="pf"><span class="br">TECNOSALDO</span><span>www.tecnosaldo.it · +39 393 4775160</span><span>pag. 6</span></div>
+<div class="phdr"><span class="phb">TECNOSALDO</span><span class="phc">04 &middot; ELGA Consumabili &middot; Distributore Ufficiale</span><span class="phr">CATALOGO PRODOTTI 2026</span></div>
+<div class="sh reveal"><div class="sh-n">04</div><div class="sh-t"><div class="sh-tt">ELGA CONSUMABILI</div><div class="sh-sub">Prestige &middot; Limarosta &middot; Probond &middot; Supercore &middot; Aristig</div></div></div>
+<div class="elga-banner reveal"><div class="elga-logo">ELGA</div><div style="font-size:6.8pt;color:var(--muted);line-height:1.45">Consumabili alta qualit&agrave; &mdash; Distributore ufficiale Tecnosaldo, Toscana &amp; Liguria.<br>Gamma completa: elettrodi MMA, fili MIG, animati, bacchette TIG in acciaio e inox.</div></div>
+<div class="dl"><div class="dln"></div><div class="dlb">ELETTRODI MMA ELGA</div><div class="dln"></div></div>
+<div class="grid g3 reveal" style="margin-bottom:2.5mm">
+<div class="pc"><div class="pc-cb">E7018-P46</div><div class="pc-body"><div class="pc-n">ELGA Prestige 46</div><div class="pc-d">Basico basso idrogeno H5. Acciaio al carbonio e basso-legato. EN ISO 2560: E 46 4 B 42 H5. &Oslash; 2.5&ndash;5.0mm. DC+/AC. RM 550MPa.</div><div class="pc-t">MMA BASICO &middot; E7018 &middot; H5 &middot; ELGA</div></div></div>
+<div class="pc"><div class="pc-cb">E308L-LIM</div><div class="pc-body"><div class="pc-n">ELGA Limarosta 308L</div><div class="pc-d">Rutilico inox 308L per 304/304L. EN ISO 3581: E 19 9 L R. &Oslash; 2.0&ndash;4.0mm. DC+. Scoria facilmente rimuovibile. Finish lucido.</div><div class="pc-t">MMA INOX &middot; 308L &middot; RUTILIC &middot; ELGA</div></div></div>
+<div class="pc"><div class="pc-cb">E316L-LIM</div><div class="pc-body"><div class="pc-n">ELGA Limarosta 316L</div><div class="pc-d">Inox 316L+Mo. Massima resistenza a corrosione marina e chimica. EN ISO 3581: E 19 12 3 L R. &Oslash; 2.0&ndash;4.0mm. DC+.</div><div class="pc-t">MMA INOX &middot; 316L &middot; Mo &middot; ELGA</div></div></div>
 </div>
-
-<!-- PAG 7 ESAB + COBOT -->
+<div class="dl"><div class="dln"></div><div class="dlb">FILI MIG E ANIMATI ELGA</div><div class="dln"></div></div>
+<div class="grid g3 reveal" style="margin-bottom:2.5mm">
+<div class="pc"><div class="pc-cb">SG2-PRO6</div><div class="pc-body"><div class="pc-n">ELGA Probond 6 SG2</div><div class="pc-d">Filo MIG Cu-ramato SG2. EN ISO 14341: G 46 4 M21 3Si1. &Oslash; 0.8&ndash;1.6mm. RM 560MPa. Strato Cu uniforme, schizzi ridotti.</div><div class="pc-t">FILO MIG &middot; SG2 &middot; CU &middot; ELGA</div></div></div>
+<div class="pc"><div class="pc-cb">SC71-SUPER</div><div class="pc-body"><div class="pc-n">ELGA Supercore 71</div><div class="pc-d">Animato rutilico E71T-1. Produttivit&agrave; +35% vs SG2. EN ISO 17632: T 46 4 T1-1. &Oslash; 1.2&ndash;1.6mm. Gas C1 o M21.</div><div class="pc-t">FILO ANIMATO &middot; E71T-1 &middot; ELGA</div></div></div>
+<div class="pc"><div class="pc-cb">TIG-ARIST</div><div class="pc-body"><div class="pc-n">ELGA Aristig TIG Inox</div><div class="pc-d">Bacchette TIG 308L e 316L. Alta purezza &gt;99.9%. &Oslash; 1.6&ndash;3.2mm, L=1000mm. Gas Ar. Basso ossido.</div><div class="pc-t">TIG INOX &middot; 308L/316L &middot; ELGA</div></div></div>
+</div>
+<div style="background:rgba(68,255,136,.04);border:1px solid rgba(68,255,136,.18);border-radius:4px;padding:2.5mm" class="reveal">
+  <div style="font-family:'IBM Plex Mono',monospace;font-size:6.5pt;color:var(--green);font-weight:700;letter-spacing:1px;margin-bottom:1.5mm">&#10022; PERCH&Eacute; SCEGLIERE ELGA</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2mm;font-size:6.5pt;color:var(--muted);line-height:1.5">
+    <div>&#127981; Produzione europea certificata EN ISO 9001 e 14001</div>
+    <div>&#128300; Composizione chimica tracciata per lotto con certificato 3.1</div>
+    <div>&#128230; Pronta consegna dal magazzino Tecnosaldo in Toscana</div>
+  </div>
+</div>
+<div class="pf"><span class="pfb">TECNOSALDO</span><span>www.tecnosaldo.it &middot; +39 393 4775160</span><span>pag. 6</span></div>
+</div>
 <div class="page" id="p6">
-  <div class="ph"><div class="ph-l"><div class="sn">05 · ESAB</div><div class="st">SALDATRICI + COBOT ESAB</div><div class="ss">Rebel · Rogue · K4000 · ESAB Cobot eMIG</div></div><div class="logo-wrap logo-sm"><div class="logo-ic">⚡</div><div><div class="logo-nm">TECNOSALDO</div></div></div></div>
-  <div class="esab-banner reveal"><div class="esab-logo">ESAB</div><div style="font-size:7pt;color:var(--muted);line-height:1.4">Saldatrici ESAB distributor Tecnosaldo — Toscana &amp; Liguria.<br>Gamma Rebel, Rogue e impianti professionali K4000.</div></div>
-  <div class="sd"><div class="ln"></div><div class="lb">REBEL · ROGUE · K4000</div><div class="ln"></div></div>
-  <div class="grid g3 reveal" style="margin-bottom:2.5mm">
-    <div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">▶ flip</div><div class="pc-code">0700500880</div><div class="pc-name">Rebel EMP 235ic</div><div class="pc-desc">Multiprocesso 235A MIG/MMA/TIG DC. Auto-volt 120–240V. 9.7kg portabilità totale.</div><div class="pc-tags"><span class="tag ">ESAB</span><span class="tag y">MULTI 235A</span><span class="tag ">AUTO-VOLT</span></div></div><div class="fc-b"><div class="pc-code">0700500880</div><div class="pc-name">Rebel EMP 235ic</div><div class="pc-desc">MIG 20–235A, MMA 20–200A, TIG DC 5–235A. Auto-volt 1F. 9.7kg. IP23. sMIG technology. Per acciaio, inox, alluminio.</div><div class="pc-tags"><span class="tag y">0700500880</span><span class="tag ">9.7KG</span></div><div class="fc-qr"><canvas class="fc-qr-c" width="44" height="44" data-url="https://www.tecnosaldo.it/?q=0700500880" style="border-radius:3px;background:#fff;padding:2px;display:block"></canvas></div></div></div></div>
-    <div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">▶ flip</div><div class="pc-code">0700500000</div><div class="pc-name">Rogue ES 180i</div><div class="pc-desc">MMA 180A leggero 5.3kg. Arco stabile per acciaio e inox. 230V 1F.</div><div class="pc-tags"><span class="tag ">ESAB</span><span class="tag y">MMA 180A</span><span class="tag ">1F · 5.3KG</span></div></div><div class="fc-b"><div class="pc-code">0700500000</div><div class="pc-name">Rogue ES 180i</div><div class="pc-desc">MMA 10–180A. TIG DC lift-arc. 230V 1F. 5.3kg. Hot Start, Arc Force, Anti-Stick automatici. IP23. Ø 1.6–4.0mm.</div><div class="pc-tags"><span class="tag y">0700500000</span><span class="tag ">5.3KG · IP23</span></div><div class="fc-qr"><canvas class="fc-qr-c" width="44" height="44" data-url="https://www.tecnosaldo.it/?q=0700500000" style="border-radius:3px;background:#fff;padding:2px;display:block"></canvas></div></div></div></div>
-    <div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">▶ flip</div><div class="pc-code">0700300910</div><div class="pc-name">ESAB K4000 MIG</div><div class="pc-desc">MIG/MAG 400A industriale sinergico. 100 programmi memorizzabili.</div><div class="pc-tags"><span class="tag ">ESAB</span><span class="tag y">MIG 400A</span><span class="tag ">SINERGICA</span></div></div><div class="fc-b"><div class="pc-code">0700300910</div><div class="pc-name">ESAB K4000 MIG</div><div class="pc-desc">MIG/MAG 30–400A. 400V 3F. Ciclo 100% a 320A. 100 programmi. Wire feed 1.5–22m/min. RS232 robot.</div><div class="pc-tags"><span class="tag y">0700300910</span><span class="tag ">400A · 100%</span></div><div class="fc-qr"><canvas class="fc-qr-c" width="44" height="44" data-url="https://www.tecnosaldo.it/?q=0700300910" style="border-radius:3px;background:#fff;padding:2px;display:block"></canvas></div></div></div></div>
-  </div>
-  <div class="cobot reveal"><div class="cobot-title">🤖 ESAB COBOT WELDING — eMIG SYSTEM <span class="cobot-new">NOVITÀ 2026</span></div><div class="cobot-body">Il sistema <strong>ESAB eMIG cobot-ready</strong> è progettato nativamente per Universal Robots. Il generatore K4000 con scheda I/O fieldbus gestisce ogni parametro dal controller UR: velocità filo, tensione, cicli 2T/4T, purge gas e rilevamento errori. <strong>ESAB WeldCloud</strong> raccoglie dati di ogni giunzione per tracciabilità completa. Tecnosaldo offre il pacchetto completo: saldatrice + braccio UR + torcia + software + installazione + training (2gg). <strong>Finanziamento 0%</strong> per PMI.</div></div>
-  <div class="pf"><span class="br">TECNOSALDO</span><span>www.tecnosaldo.it · +39 393 4775160</span><span>pag. 7</span></div>
+<div class="phdr"><span class="phb">TECNOSALDO</span><span class="phc">05 &middot; ESAB &middot; Saldatrici &middot; Cobot</span><span class="phr">CATALOGO PRODOTTI 2026</span></div>
+<div class="sh reveal"><div class="sh-n">05</div><div class="sh-t"><div class="sh-tt">ESAB SALDATRICI + COBOT</div><div class="sh-sub">Rebel &middot; Rogue &middot; K4000 &middot; ESAB Cobot eMIG</div></div></div>
+<div class="esab-banner reveal"><div class="esab-logo">ESAB</div><div style="font-size:6.8pt;color:var(--muted);line-height:1.45">Saldatrici ESAB &mdash; Distributore Tecnosaldo, Toscana &amp; Liguria.<br>Gamma Rebel, Rogue e impianti professionali K4000.</div></div>
+<div class="dl"><div class="dln"></div><div class="dlb">REBEL &middot; ROGUE &middot; K4000</div><div class="dln"></div></div>
+<div class="grid g3 reveal" style="margin-bottom:2.5mm">
+<div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">&#9654; FLIP</div><div class="fc-cb">0700500880</div><div class="fc-body"><div class="fc-n">Rebel EMP 235ic</div><div class="fc-d">Multiprocesso 235A MIG/MMA/TIG DC. Auto-volt 120&ndash;240V. 9.7kg portabilit&agrave; totale.</div><div class="fc-t">ESAB &middot; MULTI 235A &middot; AUTO-VOLT</div></div></div><div class="fc-b"><div class="fc-cb" style="color:#44ff88">0700500880</div><div class="fc-body"><div class="fc-n">Rebel EMP 235ic</div><div class="fc-d">MIG 20&ndash;235A, MMA 20&ndash;200A, TIG DC 5&ndash;235A. Auto-volt 1F. 9.7kg. IP23. sMIG technology.</div><div class="fc-t">0700500880 &middot; 9.7KG &middot; sMIG</div><div class="fc-qr"><canvas class="fc-qrc" width="50" height="50" data-url="https://www.tecnosaldo.it/?q=0700500880"></canvas></div></div></div></div></div>
+<div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">&#9654; FLIP</div><div class="fc-cb">0700500000</div><div class="fc-body"><div class="fc-n">Rogue ES 180i</div><div class="fc-d">MMA 180A leggero 5.3kg. Arco stabile per acciaio e inox. 230V 1F.</div><div class="fc-t">ESAB &middot; MMA 180A &middot; 1F &middot; 5.3KG</div></div></div><div class="fc-b"><div class="fc-cb" style="color:#44ff88">0700500000</div><div class="fc-body"><div class="fc-n">Rogue ES 180i</div><div class="fc-d">MMA 10&ndash;180A. TIG DC lift-arc. 230V 1F. 5.3kg. Hot Start, Arc Force, Anti-Stick automatici. IP23.</div><div class="fc-t">0700500000 &middot; 5.3KG &middot; IP23</div><div class="fc-qr"><canvas class="fc-qrc" width="50" height="50" data-url="https://www.tecnosaldo.it/?q=0700500000"></canvas></div></div></div></div></div>
+<div class="fc"><div class="fc-i"><div class="fc-f"><div class="fc-hint">&#9654; FLIP</div><div class="fc-cb">0700300910</div><div class="fc-body"><div class="fc-n">ESAB K4000 MIG</div><div class="fc-d">MIG/MAG 400A industriale sinergico. 100 programmi memorizzabili.</div><div class="fc-t">ESAB &middot; MIG 400A &middot; SINERGICA</div></div></div><div class="fc-b"><div class="fc-cb" style="color:#44ff88">0700300910</div><div class="fc-body"><div class="fc-n">ESAB K4000 MIG</div><div class="fc-d">MIG/MAG 30&ndash;400A. 400V 3F. Ciclo 100% a 320A. 100 programmi. Wire feed 1.5&ndash;22m/min.</div><div class="fc-t">0700300910 &middot; 400A &middot; 100%</div><div class="fc-qr"><canvas class="fc-qrc" width="50" height="50" data-url="https://www.tecnosaldo.it/?q=0700300910"></canvas></div></div></div></div></div>
 </div>
-
-<!-- PAG 8 CONSUMABILI ESAB -->
+<div class="cobot reveal"><div class="cobt">&#129302; ESAB &mdash; eMIG SYSTEM COBOT WELDING <span class="cobn">NOVIT&Agrave; 2026</span></div><div class="cobb">Il sistema <strong>ESAB eMIG cobot-ready</strong> &egrave; progettato nativamente per Universal Robots. Il generatore K4000 con scheda I/O fieldbus gestisce ogni parametro dal controller UR: velocit&agrave; filo, tensione, cicli 2T/4T, purge gas e rilevamento errori. <strong>ESAB WeldCloud</strong> raccoglie dati di ogni giunzione per tracciabilit&agrave; completa. Tecnosaldo offre il pacchetto completo: saldatrice + braccio UR + torcia + software + installazione + training. <strong>Finanziamento 0%</strong> per PMI.</div></div>
+<div class="pf"><span class="pfb">TECNOSALDO</span><span>www.tecnosaldo.it &middot; +39 393 4775160</span><span>pag. 7</span></div>
+</div>
 <div class="page" id="p7">
-  <div class="ph"><div class="ph-l"><div class="sn">06 · ESAB CONSUMABILI</div><div class="st">ELETTRODI · FILI · BACCHETTE TIG</div><div class="ss">OK 48 · Tubrod · Shield-Bright · Autrod Al · OK 63.30</div></div><div class="logo-wrap logo-sm"><div class="logo-ic">⚡</div><div><div class="logo-nm">TECNOSALDO</div></div></div></div>
-  <div class="sd"><div class="ln"></div><div class="lb">ELETTRODI MMA ESAB</div><div class="ln"></div></div>
-  <div class="grid g4 reveal" style="margin-bottom:2.5mm">
-    <div class="pc"><div class="pc-code">ESAB-OK4800</div><div class="pc-name">OK 48.00</div><div class="pc-desc">Basico basso idrogeno H5 per acciaio strutturale. Eccellente tenacità a bassa temperatura. Ø 2.5–5.0mm. DC+.</div><div class="pc-tags"><span class="tag y">BASICO H5</span><span class="tag ">E7018 · DC+</span></div></div>
-    <div class="pc"><div class="pc-code">ESAB-OK4850</div><div class="pc-name">OK 48.50</div><div class="pc-desc">Basico speciale alto rendimento 120%. Per strutture offshore, ponti, recipienti pressione. Ø 2.5–5.0mm.</div><div class="pc-tags"><span class="tag y">BASICO 120%</span><span class="tag ">OFFSHORE</span></div></div>
-    <div class="pc"><div class="pc-code">ESAB-OK6330</div><div class="pc-name">OK 63.30</div><div class="pc-desc">Rutilico inox 316L. Per 316/316L in tutte le posizioni. Ø 2.0–4.0mm. DC+.</div><div class="pc-tags"><span class="tag y">INOX 316L</span><span class="tag ">RUTILICO</span></div></div>
-    <div class="pc"><div class="pc-code">ESAB-OK6110</div><div class="pc-name">OK 61.10</div><div class="pc-desc">Inox 308L. Arco fluido, scoria facilmente rimuovibile. Aspetto cordone eccellente. Ø 2.0–4.0mm.</div><div class="pc-tags"><span class="tag y">INOX 308L</span><span class="tag ">RUTILICO</span></div></div>
-  </div>
-  <div class="sd"><div class="ln"></div><div class="lb">FILI MIG E ANIMATI ESAB</div><div class="ln"></div></div>
-  <div class="grid g3 reveal" style="margin-bottom:2.5mm">
-    <div class="pc"><div class="pc-code">ESAB-TUBRODA</div><div class="pc-name">Tubrod 15.14</div><div class="pc-desc">Animato rutilico E71T-1 per acciaio al carbonio. Alta produttività. Ø 1.2–1.6mm. Gas CO2 o Ar+CO2.</div><div class="pc-tags"><span class="tag y">ANIMATO</span><span class="tag ">E71T-1 · CO2</span></div></div>
-    <div class="pc"><div class="pc-code">ESAB-SB316L</div><div class="pc-name">Shield-Bright 316L</div><div class="pc-desc">Animato inox 316L rutilico. Per ambienti marini, chimici, alimentari. Ø 1.2mm. Gas M12.</div><div class="pc-tags"><span class="tag y">ANIMATO INOX</span><span class="tag ">316L · MIG</span></div></div>
-    <div class="pc"><div class="pc-code">ESAB-AUTRAL</div><div class="pc-name">Autrod 18.15 Al</div><div class="pc-desc">Filo MIG alluminio 5356. Per leghe Al 5xxx. Ø 1.0–1.6mm. Gas Ar puro. Alta resistenza meccanica.</div><div class="pc-tags"><span class="tag y">FILO AL</span><span class="tag ">5356 · Ar</span></div></div>
-  </div>
-  <div class="sd"><div class="ln"></div><div class="lb">BACCHETTE TIG ESAB</div><div class="ln"></div></div>
-  <div class="grid g4 reveal">
-    <div class="pc"><div class="pc-code">ESAB-TIG308L</div><div class="pc-name">OK Tigrod 308L</div><div class="pc-desc">Bacchette TIG inox 308L. Ø 1.6–3.2mm, L=1000mm. Per 304/304L. Purezza elevata, basso C.</div><div class="pc-tags"><span class="tag y">TIG INOX</span><span class="tag ">308L</span></div></div>
-    <div class="pc"><div class="pc-code">ESAB-TIG316L</div><div class="pc-name">OK Tigrod 316L</div><div class="pc-desc">Bacchette TIG inox 316L+Mo. Ø 1.6–3.2mm, L=1000mm. Per 316/316L ambienti corrosivi.</div><div class="pc-tags"><span class="tag y">TIG INOX</span><span class="tag ">316L · Mo</span></div></div>
-    <div class="pc"><div class="pc-code">ESAB-TIG4043</div><div class="pc-name">OK Tigrod 4043 Al</div><div class="pc-desc">Bacchette TIG alluminio 4043 Al-Si. Ø 1.6–3.2mm. Per alluminio 6xxx e 3xxx. Gas Ar.</div><div class="pc-tags"><span class="tag y">TIG AL</span><span class="tag ">4043</span></div></div>
-    <div class="pc"><div class="pc-code">ESAB-TIG70S</div><div class="pc-name">OK Tigrod 12.64</div><div class="pc-desc">Bacchetta TIG acciaio ER70S-6. Ø 1.6–3.2mm. Per acciaio al carbonio e basso-legato. Gas Ar.</div><div class="pc-tags"><span class="tag y">TIG ACCIAIO</span><span class="tag ">ER70S-6</span></div></div>
-  </div>
-  <div class="pf"><span class="br">TECNOSALDO</span><span>www.tecnosaldo.it · +39 393 4775160</span><span>pag. 8</span></div>
+<div class="phdr"><span class="phb">TECNOSALDO</span><span class="phc">06 &middot; ESAB Consumabili &middot; Elettrodi &middot; Fili &middot; TIG</span><span class="phr">CATALOGO PRODOTTI 2026</span></div>
+<div class="sh reveal"><div class="sh-n">06</div><div class="sh-t"><div class="sh-tt">CONSUMABILI ESAB</div><div class="sh-sub">OK 48 &middot; Tubrod &middot; Shield-Bright &middot; Autrod Al &middot; OK 63.30</div></div></div>
+<div class="dl"><div class="dln"></div><div class="dlb">ELETTRODI MMA ESAB</div><div class="dln"></div></div>
+<div class="grid g4 reveal" style="margin-bottom:2.5mm">
+<div class="pc"><div class="pc-cb">ESAB-OK4800</div><div class="pc-body"><div class="pc-n">OK 48.00</div><div class="pc-d">Basico basso idrogeno H5 per acciaio strutturale. Eccellente tenacit&agrave; a bassa temperatura. &Oslash; 2.5&ndash;5.0mm. DC+.</div><div class="pc-t">BASICO H5 &middot; E7018 &middot; DC+</div></div></div>
+<div class="pc"><div class="pc-cb">ESAB-OK4850</div><div class="pc-body"><div class="pc-n">OK 48.50</div><div class="pc-d">Basico speciale alto rendimento 120%. Per strutture offshore, ponti, recipienti pressione. &Oslash; 2.5&ndash;5.0mm.</div><div class="pc-t">BASICO 120% &middot; OFFSHORE</div></div></div>
+<div class="pc"><div class="pc-cb">ESAB-OK6330</div><div class="pc-body"><div class="pc-n">OK 63.30</div><div class="pc-d">Rutilico inox 316L. Per 316/316L in tutte le posizioni. &Oslash; 2.0&ndash;4.0mm. DC+.</div><div class="pc-t">INOX 316L &middot; RUTILICO</div></div></div>
+<div class="pc"><div class="pc-cb">ESAB-OK6110</div><div class="pc-body"><div class="pc-n">OK 61.10</div><div class="pc-d">Inox 308L. Arco fluido, scoria facilmente rimuovibile. &Oslash; 2.0&ndash;4.0mm.</div><div class="pc-t">INOX 308L &middot; RUTILICO</div></div></div>
 </div>
-
-<!-- PAG 9 ACCIAIO -->
+<div class="dl"><div class="dln"></div><div class="dlb">FILI MIG E ANIMATI ESAB</div><div class="dln"></div></div>
+<div class="grid g3 reveal" style="margin-bottom:2.5mm">
+<div class="pc"><div class="pc-cb">ESAB-TUBRODA</div><div class="pc-body"><div class="pc-n">Tubrod 15.14</div><div class="pc-d">Animato rutilico E71T-1 per acciaio al carbonio. Alta produttivit&agrave;. &Oslash; 1.2&ndash;1.6mm. Gas CO2 o Ar+CO2.</div><div class="pc-t">ANIMATO &middot; E71T-1 &middot; CO2</div></div></div>
+<div class="pc"><div class="pc-cb">ESAB-SB316L</div><div class="pc-body"><div class="pc-n">Shield-Bright 316L</div><div class="pc-d">Animato inox 316L rutilico. Per ambienti marini, chimici, alimentari. &Oslash; 1.2mm. Gas M12.</div><div class="pc-t">ANIMATO INOX &middot; 316L &middot; MIG</div></div></div>
+<div class="pc"><div class="pc-cb">ESAB-AUTRAL</div><div class="pc-body"><div class="pc-n">Autrod 18.15 Al</div><div class="pc-d">Filo MIG alluminio 5356. Per leghe Al 5xxx. &Oslash; 1.0&ndash;1.6mm. Gas Ar puro. Alta resistenza meccanica.</div><div class="pc-t">FILO AL &middot; 5356 &middot; Ar</div></div></div>
+</div>
+<div class="dl"><div class="dln"></div><div class="dlb">BACCHETTE TIG ESAB</div><div class="dln"></div></div>
+<div class="grid g4 reveal">
+<div class="pc"><div class="pc-cb">ESAB-TIG308L</div><div class="pc-body"><div class="pc-n">OK Tigrod 308L</div><div class="pc-d">Bacchette TIG inox 308L. &Oslash; 1.6&ndash;3.2mm, L=1000mm. Per 304/304L. Purezza elevata, basso C.</div><div class="pc-t">TIG INOX &middot; 308L</div></div></div>
+<div class="pc"><div class="pc-cb">ESAB-TIG316L</div><div class="pc-body"><div class="pc-n">OK Tigrod 316L</div><div class="pc-d">Bacchette TIG inox 316L+Mo. &Oslash; 1.6&ndash;3.2mm, L=1000mm. Per 316/316L ambienti corrosivi.</div><div class="pc-t">TIG INOX &middot; 316L &middot; Mo</div></div></div>
+<div class="pc"><div class="pc-cb">ESAB-TIG4043</div><div class="pc-body"><div class="pc-n">OK Tigrod 4043 Al</div><div class="pc-d">Bacchette TIG alluminio 4043 Al-Si. &Oslash; 1.6&ndash;3.2mm. Per alluminio 6xxx e 3xxx. Gas Ar.</div><div class="pc-t">TIG AL &middot; 4043</div></div></div>
+<div class="pc"><div class="pc-cb">ESAB-TIG70S</div><div class="pc-body"><div class="pc-n">OK Tigrod 12.64</div><div class="pc-d">Bacchetta TIG acciaio ER70S-6. &Oslash; 1.6&ndash;3.2mm. Per acciaio al carbonio e basso-legato. Gas Ar.</div><div class="pc-t">TIG ACCIAIO &middot; ER70S-6</div></div></div>
+</div>
+<div class="pf"><span class="pfb">TECNOSALDO</span><span>www.tecnosaldo.it &middot; +39 393 4775160</span><span>pag. 8</span></div>
+</div>
 <div class="page" id="p8">
-  <div class="ph"><div class="ph-l"><div class="sn">07 · CONSUMABILI ACCIAIO</div><div class="st">MMA · FILI SG2 · ANIMATI · TIG</div><div class="ss">Elettrodi basici/rutilici · Filo pieno/animato · Bacchette TIG acciaio</div></div><div class="logo-wrap logo-sm"><div class="logo-ic">⚡</div><div><div class="logo-nm">TECNOSALDO</div></div></div></div>
-  <div class="sd"><div class="ln"></div><div class="lb">ELETTRODI MMA — ACCIAIO AL CARBONIO</div><div class="ln"></div></div>
-  <div class="grid g4 reveal" style="margin-bottom:2.5mm">
-    <div class="pc"><div class="pc-code">NEWCOEL.B.25</div><div class="pc-name">Basico H5 Ø2.5mm</div><div class="pc-desc">E7018 Ø2.5mm. Basso idrogeno H5. Per S275–S355. DC+. Conf. 4kg.</div><div class="pc-tags"><span class="tag y">BASICO E7018</span><span class="tag ">H5 · Ø2.5</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOEL.B.32</div><div class="pc-name">Basico H5 Ø3.2mm</div><div class="pc-desc">E7018 Ø3.2mm. Standard per carpenteria medio-pesante. Arco stabile. Conf. 5kg.</div><div class="pc-tags"><span class="tag y">BASICO E7018</span><span class="tag ">H5 · Ø3.2</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOEL.B.40</div><div class="pc-name">Basico H5 Ø4.0mm</div><div class="pc-desc">E7018 Ø4.0mm. Per spessori &gt;8mm. Alta penetrazione. Conf. 5kg.</div><div class="pc-tags"><span class="tag y">BASICO E7018</span><span class="tag ">H5 · Ø4.0</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOEL.B.50</div><div class="pc-name">Basico H5 Ø5.0mm</div><div class="pc-desc">E7018 Ø5.0mm. Passate di riempimento grandi giunti. Max produttività. Conf. 5kg.</div><div class="pc-tags"><span class="tag y">BASICO E7018</span><span class="tag ">H5 · Ø5.0</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOEL.R.25</div><div class="pc-name">Rutilico E6013 Ø2.5mm</div><div class="pc-desc">E6013 Ø2.5mm. DC/AC. Manutenzione leggera. Arco dolce. Conf. 4kg.</div><div class="pc-tags"><span class="tag ">RUTILICO E6013</span><span class="tag ">Ø2.5 · DC/AC</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOEL.R.32</div><div class="pc-name">Rutilico E6013 Ø3.2mm</div><div class="pc-desc">E6013 Ø3.2mm. Lamiere sottili, scoria facile. Conf. 5kg.</div><div class="pc-tags"><span class="tag ">RUTILICO E6013</span><span class="tag ">Ø3.2 · DC/AC</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOEL.R.40</div><div class="pc-name">Rutilico E6013 Ø4.0mm</div><div class="pc-desc">E6013 Ø4.0mm. Cordone pulito per lavori in vista. Conf. 5kg.</div><div class="pc-tags"><span class="tag ">RUTILICO E6013</span><span class="tag ">Ø4.0 · DC/AC</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOEL.C.32</div><div class="pc-name">Cellulosico E6010 Ø3.2mm</div><div class="pc-desc">E6010 Ø3.2mm. Saldatura in discesa tubazioni. DC+ solo.</div><div class="pc-tags"><span class="tag ">CELLULOSICO</span><span class="tag ">E6010 · DC+</span></div></div>
-  </div>
-  <div class="sd"><div class="ln"></div><div class="lb">FILI MIG SG2 E ANIMATI — ACCIAIO</div><div class="ln"></div></div>
-  <div class="grid g4 reveal">
-    <div class="pc"><div class="pc-code">NEWCOFIL.08</div><div class="pc-name">Filo SG2 Ø0.8mm 5kg</div><div class="pc-desc">SG2 ramato Ø0.8mm. Per lamiere 1–3mm. Gas M21. Bobina Ø200 5kg.</div><div class="pc-tags"><span class="tag y">SG2 · Ø0.8</span><span class="tag ">5KG</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOFIL.10</div><div class="pc-name">Filo SG2 Ø1.0mm 15kg</div><div class="pc-desc">SG2 ramato Ø1.0mm. Standard carpenteria. Bobina 15kg Ø300.</div><div class="pc-tags"><span class="tag y">SG2 · Ø1.0</span><span class="tag ">15KG</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOFIL.12</div><div class="pc-name">Filo SG2 Ø1.2mm 15kg</div><div class="pc-desc">SG2 Ø1.2mm. Il più usato nell'industria. Spessori 3–8mm. 15kg.</div><div class="pc-tags"><span class="tag y">SG2 · Ø1.2</span><span class="tag ">15KG</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOFIL.16</div><div class="pc-name">Filo SG2 Ø1.6mm 15kg</div><div class="pc-desc">SG2 Ø1.6mm. Spessori pesanti &gt;8mm. Alta deposizione. 15kg.</div><div class="pc-tags"><span class="tag y">SG2 · Ø1.6</span><span class="tag ">15KG</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOANIMT12</div><div class="pc-name">Animato Rut. Ø1.2mm</div><div class="pc-desc">E71T-1 Ø1.2mm. Gas CO2 o M21. Alta produttività. 15kg.</div><div class="pc-tags"><span class="tag y">ANIMATO</span><span class="tag ">E71T-1 · Ø1.2</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOANIMT16</div><div class="pc-name">Animato Rut. Ø1.6mm</div><div class="pc-desc">E71T-1 Ø1.6mm. Spessori pesanti, alte correnti. Deposizione max. 15kg.</div><div class="pc-tags"><span class="tag y">ANIMATO</span><span class="tag ">E71T-1 · Ø1.6</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOTIG.12</div><div class="pc-name">Bacchetta TIG S6 Ø1.6mm</div><div class="pc-desc">ER70S-6 Ø1.6mm per acciaio al carbonio. Gas Ar o Ar+He. L=1000mm. 5kg.</div><div class="pc-tags"><span class="tag y">TIG ACCIAIO</span><span class="tag ">ER70S-6 · Ø1.6</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOTIG.24</div><div class="pc-name">Bacchetta TIG S6 Ø2.4mm</div><div class="pc-desc">ER70S-6 Ø2.4mm. Spessori medi-alti. Gas Ar. L=1000mm. 5kg.</div><div class="pc-tags"><span class="tag y">TIG ACCIAIO</span><span class="tag ">ER70S-6 · Ø2.4</span></div></div>
-  </div>
-  <div class="pf"><span class="br">TECNOSALDO</span><span>www.tecnosaldo.it · +39 393 4775160</span><span>pag. 9</span></div>
+<div class="phdr"><span class="phb">TECNOSALDO</span><span class="phc">07 &middot; Consumabili Acciaio al Carbonio</span><span class="phr">CATALOGO PRODOTTI 2026</span></div>
+<div class="sh reveal"><div class="sh-n">07</div><div class="sh-t"><div class="sh-tt">CONSUMABILI ACCIAIO</div><div class="sh-sub">MMA &middot; Fili SG2 &middot; Filo Animato &middot; Bacchette TIG</div></div></div>
+<div class="dl"><div class="dln"></div><div class="dlb">ELETTRODI MMA &mdash; ACCIAIO AL CARBONIO</div><div class="dln"></div></div>
+<div class="grid g4 reveal" style="margin-bottom:2.5mm">
+<div class="pc"><div class="pc-cb">NEWCOEL.B.25</div><div class="pc-body"><div class="pc-n">Basico H5 &Oslash;2.5mm</div><div class="pc-d">E7018 &Oslash;2.5mm. Basso idrogeno H5. Per S275&ndash;S355. DC+. Conf. 4kg.</div><div class="pc-t">BASICO E7018 &middot; H5 &middot; &Oslash;2.5</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOEL.B.32</div><div class="pc-body"><div class="pc-n">Basico H5 &Oslash;3.2mm</div><div class="pc-d">E7018 &Oslash;3.2mm. Standard carpenteria medio-pesante. Arco stabile. Conf. 5kg.</div><div class="pc-t">BASICO E7018 &middot; H5 &middot; &Oslash;3.2</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOEL.B.40</div><div class="pc-body"><div class="pc-n">Basico H5 &Oslash;4.0mm</div><div class="pc-d">E7018 &Oslash;4.0mm. Per spessori &gt;8mm. Alta penetrazione. Conf. 5kg.</div><div class="pc-t">BASICO E7018 &middot; H5 &middot; &Oslash;4.0</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOEL.B.50</div><div class="pc-body"><div class="pc-n">Basico H5 &Oslash;5.0mm</div><div class="pc-d">E7018 &Oslash;5.0mm. Passate di riempimento grandi giunti. Max produttivit&agrave;. Conf. 5kg.</div><div class="pc-t">BASICO E7018 &middot; H5 &middot; &Oslash;5.0</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOEL.R.25</div><div class="pc-body"><div class="pc-n">Rutilico E6013 &Oslash;2.5mm</div><div class="pc-d">E6013 &Oslash;2.5mm. DC/AC. Manutenzione leggera. Arco dolce. Conf. 4kg.</div><div class="pc-t">RUTILICO E6013 &middot; &Oslash;2.5 &middot; DC/AC</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOEL.R.32</div><div class="pc-body"><div class="pc-n">Rutilico E6013 &Oslash;3.2mm</div><div class="pc-d">E6013 &Oslash;3.2mm. Lamiere sottili, scoria facile. Conf. 5kg.</div><div class="pc-t">RUTILICO E6013 &middot; &Oslash;3.2 &middot; DC/AC</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOEL.R.40</div><div class="pc-body"><div class="pc-n">Rutilico E6013 &Oslash;4.0mm</div><div class="pc-d">E6013 &Oslash;4.0mm. Cordone pulito per lavori in vista. Conf. 5kg.</div><div class="pc-t">RUTILICO E6013 &middot; &Oslash;4.0 &middot; DC/AC</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOEL.C.32</div><div class="pc-body"><div class="pc-n">Cellulosico E6010 &Oslash;3.2mm</div><div class="pc-d">E6010 &Oslash;3.2mm. Saldatura in discesa tubazioni. DC+ solo.</div><div class="pc-t">CELLULOSICO &middot; E6010 &middot; DC+</div></div></div>
 </div>
-
-<!-- PAG 10 INOX -->
+<div class="dl"><div class="dln"></div><div class="dlb">FILI MIG SG2 E ANIMATI &mdash; ACCIAIO</div><div class="dln"></div></div>
+<div class="grid g4 reveal">
+<div class="pc"><div class="pc-cb">NEWCOFIL.08</div><div class="pc-body"><div class="pc-n">Filo SG2 &Oslash;0.8mm 5kg</div><div class="pc-d">SG2 ramato &Oslash;0.8mm. Per lamiere 1&ndash;3mm. Gas M21. Bobina &Oslash;200 5kg.</div><div class="pc-t">SG2 &middot; &Oslash;0.8 &middot; 5KG</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOFIL.10</div><div class="pc-body"><div class="pc-n">Filo SG2 &Oslash;1.0mm 15kg</div><div class="pc-d">SG2 ramato &Oslash;1.0mm. Standard carpenteria. Bobina 15kg &Oslash;300.</div><div class="pc-t">SG2 &middot; &Oslash;1.0 &middot; 15KG</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOFIL.12</div><div class="pc-body"><div class="pc-n">Filo SG2 &Oslash;1.2mm 15kg</div><div class="pc-d">SG2 &Oslash;1.2mm. Il pi&ugrave; usato nell&apos;industria. Spessori 3&ndash;8mm. 15kg.</div><div class="pc-t">SG2 &middot; &Oslash;1.2 &middot; 15KG</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOFIL.16</div><div class="pc-body"><div class="pc-n">Filo SG2 &Oslash;1.6mm 15kg</div><div class="pc-d">SG2 &Oslash;1.6mm. Spessori pesanti &gt;8mm. Alta deposizione. 15kg.</div><div class="pc-t">SG2 &middot; &Oslash;1.6 &middot; 15KG</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOANIMT12</div><div class="pc-body"><div class="pc-n">Animato Rut. &Oslash;1.2mm</div><div class="pc-d">E71T-1 &Oslash;1.2mm. Gas CO2 o M21. Alta produttivit&agrave;. 15kg.</div><div class="pc-t">ANIMATO &middot; E71T-1 &middot; &Oslash;1.2</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOANIMT16</div><div class="pc-body"><div class="pc-n">Animato Rut. &Oslash;1.6mm</div><div class="pc-d">E71T-1 &Oslash;1.6mm. Spessori pesanti, alte correnti. Deposizione max. 15kg.</div><div class="pc-t">ANIMATO &middot; E71T-1 &middot; &Oslash;1.6</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOTIG.12</div><div class="pc-body"><div class="pc-n">Bacchetta TIG S6 &Oslash;1.6mm</div><div class="pc-d">ER70S-6 &Oslash;1.6mm per acciaio al carbonio. Gas Ar o Ar+He. L=1000mm. 5kg.</div><div class="pc-t">TIG ACCIAIO &middot; ER70S-6 &middot; &Oslash;1.6</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOTIG.24</div><div class="pc-body"><div class="pc-n">Bacchetta TIG S6 &Oslash;2.4mm</div><div class="pc-d">ER70S-6 &Oslash;2.4mm. Spessori medi-alti. Gas Ar. L=1000mm. 5kg.</div><div class="pc-t">TIG ACCIAIO &middot; ER70S-6 &middot; &Oslash;2.4</div></div></div>
+</div>
+<div class="pf"><span class="pfb">TECNOSALDO</span><span>www.tecnosaldo.it &middot; +39 393 4775160</span><span>pag. 9</span></div>
+</div>
 <div class="page" id="p9">
-  <div class="ph"><div class="ph-l"><div class="sn">08 · CONSUMABILI INOX</div><div class="st">308/308L · 316/316L · TIG INOX</div><div class="ss">Cromarod · Fili MIG/animati inox · CRINOXTIG bacchette</div></div><div class="logo-wrap logo-sm"><div class="logo-ic">⚡</div><div><div class="logo-nm">TECNOSALDO</div></div></div></div>
-  <div class="sd"><div class="ln"></div><div class="lb">INOX 308 / 308L — AUSTENITICI TIPO 304</div><div class="ln"></div></div>
-  <div class="grid g4 reveal" style="margin-bottom:2.5mm">
-    <div class="pc hl"><div class="pc-code">NEWCOEL.1.308L25</div><div class="pc-name">Cromarod 308L Ø2.5mm</div><div class="pc-desc">MMA inox 308L. Per 304/304L. Ø2.5mm. DC+. Conf. 2kg.</div><div class="pc-tags"><span class="tag y">MMA 308L</span><span class="tag ">Ø2.5</span></div></div>
-    <div class="pc hl"><div class="pc-code">NEWCOEL.1.308L32</div><div class="pc-name">Cromarod 308L Ø3.2mm</div><div class="pc-desc">MMA 308L Ø3.2mm. Standard per inox in officina. DC+. Conf. 2kg.</div><div class="pc-tags"><span class="tag y">MMA 308L</span><span class="tag ">Ø3.2</span></div></div>
-    <div class="pc hl"><div class="pc-code">NEWCOEL.1.308L40</div><div class="pc-name">Cromarod 308L Ø4.0mm</div><div class="pc-desc">308L Ø4.0mm. Spessori inox &gt;5mm. DC+. Basso C. Conf. 2kg.</div><div class="pc-tags"><span class="tag y">MMA 308L</span><span class="tag ">Ø4.0</span></div></div>
-    <div class="pc hl"><div class="pc-code">NEWCOFIL.308L10</div><div class="pc-name">Filo MIG 308L Ø1.0mm</div><div class="pc-desc">MIG 308L Ø1.0mm. Gas M12. Per 304/304L. Spessori 1.5–4mm. 15kg.</div><div class="pc-tags"><span class="tag y">MIG 308L</span><span class="tag ">Ø1.0</span></div></div>
-    <div class="pc hl"><div class="pc-code">NEWCOFIL.308L12</div><div class="pc-name">Filo MIG 308L Ø1.2mm</div><div class="pc-desc">MIG 308L Ø1.2mm. Gas M12. Spessori &gt;3mm. Deposizione uniforme. 15kg.</div><div class="pc-tags"><span class="tag y">MIG 308L</span><span class="tag ">Ø1.2</span></div></div>
-    <div class="pc hl"><div class="pc-code">NEWCOTIG.308L16</div><div class="pc-name">CRINOXTIG 308L Ø1.6mm</div><div class="pc-desc">TIG inox 308L Ø1.6mm. Ar puro. Alta purezza, finitura estetica. L=1000mm. 5kg.</div><div class="pc-tags"><span class="tag y">TIG 308L</span><span class="tag ">Ø1.6</span></div></div>
-    <div class="pc hl"><div class="pc-code">NEWCOTIG.308L24</div><div class="pc-name">CRINOXTIG 308L Ø2.4mm</div><div class="pc-desc">TIG 308L Ø2.4mm. Spessori medi-alti 304. Gas Ar. L=1000mm. 5kg.</div><div class="pc-tags"><span class="tag y">TIG 308L</span><span class="tag ">Ø2.4</span></div></div>
-    <div class="pc hl"><div class="pc-code">NEWCOTIG.308L32</div><div class="pc-name">CRINOXTIG 308L Ø3.2mm</div><div class="pc-desc">TIG 308L Ø3.2mm. Spessori &gt;6mm su 304. Alta deposizione. Ar. 5kg.</div><div class="pc-tags"><span class="tag y">TIG 308L</span><span class="tag ">Ø3.2</span></div></div>
-  </div>
-  <div class="sd"><div class="ln"></div><div class="lb">INOX 316 / 316L — CON MOLIBDENO (AMBIENTE CORROSIVO)</div><div class="ln"></div></div>
-  <div class="grid g4 reveal">
-    <div class="pc"><div class="pc-code">NEWCOEL.1.316L25</div><div class="pc-name">Cromarod 316L Ø2.5mm</div><div class="pc-desc">MMA 316L+Mo Ø2.5mm. Per 316/316L ambienti marini. DC+. Conf. 2kg.</div><div class="pc-tags"><span class="tag y">MMA 316L</span><span class="tag ">Mo · Ø2.5</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOEL.1.316L32</div><div class="pc-name">Cromarod 316L Ø3.2mm</div><div class="pc-desc">316L Ø3.2mm. Standard industria chimica e marino. DC+. Conf. 2kg.</div><div class="pc-tags"><span class="tag y">MMA 316L</span><span class="tag ">Mo · Ø3.2</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOEL.1.316L40</div><div class="pc-name">Cromarod 316L Ø4.0mm</div><div class="pc-desc">316L Ø4.0mm. Grandi spessori. Max resistenza pitting. DC+. Conf. 2kg.</div><div class="pc-tags"><span class="tag y">MMA 316L</span><span class="tag ">Mo · Ø4.0</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOFIL.316L10</div><div class="pc-name">Filo MIG 316L Ø1.0mm</div><div class="pc-desc">MIG 316L+Mo Ø1.0mm. Gas M12. Per 316/316L. Spessori 1.5–4mm. 15kg.</div><div class="pc-tags"><span class="tag y">MIG 316L</span><span class="tag ">Mo · Ø1.0</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOFIL.316L12</div><div class="pc-name">Filo MIG 316L Ø1.2mm</div><div class="pc-desc">316L+Mo Ø1.2mm. Spessori &gt;3mm. Gas M12. Resistenza pitting. 15kg.</div><div class="pc-tags"><span class="tag y">MIG 316L</span><span class="tag ">Mo · Ø1.2</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOTIG.316L16</div><div class="pc-name">CRINOXTIG 316L Ø1.6mm</div><div class="pc-desc">TIG 316L+Mo Ø1.6mm. Per 316/316L. Gas Ar. Purezza elevata. 5kg.</div><div class="pc-tags"><span class="tag y">TIG 316L</span><span class="tag ">Mo · Ø1.6</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOTIG.316L24</div><div class="pc-name">CRINOXTIG 316L Ø2.4mm</div><div class="pc-desc">TIG 316L+Mo Ø2.4mm. Spessori medi 316. Gas Ar. L=1000mm. 5kg.</div><div class="pc-tags"><span class="tag y">TIG 316L</span><span class="tag ">Mo · Ø2.4</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOTIG.316L32</div><div class="pc-name">CRINOXTIG 316L Ø3.2mm</div><div class="pc-desc">TIG 316L Ø3.2mm. Spessori alti. Massima corrosion resistance. Gas Ar. 5kg.</div><div class="pc-tags"><span class="tag y">TIG 316L</span><span class="tag ">Mo · Ø3.2</span></div></div>
-  </div>
-  <div class="pf"><span class="br">TECNOSALDO</span><span>www.tecnosaldo.it · +39 393 4775160</span><span>pag. 10</span></div>
+<div class="phdr"><span class="phb">TECNOSALDO</span><span class="phc">08 &middot; Consumabili Inox 308/316</span><span class="phr">CATALOGO PRODOTTI 2026</span></div>
+<div class="sh reveal"><div class="sh-n">08</div><div class="sh-t"><div class="sh-tt">CONSUMABILI INOX</div><div class="sh-sub">308/308L &middot; 316/316L &middot; Cromarod &middot; CRINOXTIG</div></div></div>
+<div class="ab reveal">&nbsp;<span style="color:var(--y)">&#9632;</span>&nbsp;APPLICAZIONI: Industria alimentare &middot; Farmaceutica &middot; Chimica &middot; Impianti sanitari &middot; Carpenteria Inox</div>
+<div class="dl"><div class="dln"></div><div class="dlb">INOX 308 / 308L &mdash; AUSTENITICI TIPO 304</div><div class="dln"></div></div>
+<div class="grid g4 reveal" style="margin-bottom:2.5mm">
+<div class="pc hl"><div class="pc-cb">NEWCOEL.1.308L25</div><div class="pc-body"><div class="pc-n">Cromarod 308L &Oslash;2.5mm</div><div class="pc-d">MMA inox 308L. Per 304/304L. &Oslash;2.5mm. DC+. Conf. 2kg.</div><div class="pc-t">MMA 308L &middot; &Oslash;2.5</div></div></div>
+<div class="pc hl"><div class="pc-cb">NEWCOEL.1.308L32</div><div class="pc-body"><div class="pc-n">Cromarod 308L &Oslash;3.2mm</div><div class="pc-d">MMA 308L &Oslash;3.2mm. Standard per inox in officina. DC+. Conf. 2kg.</div><div class="pc-t">MMA 308L &middot; &Oslash;3.2</div></div></div>
+<div class="pc hl"><div class="pc-cb">NEWCOEL.1.308L40</div><div class="pc-body"><div class="pc-n">Cromarod 308L &Oslash;4.0mm</div><div class="pc-d">308L &Oslash;4.0mm. Spessori inox &gt;5mm. DC+. Basso C. Conf. 2kg.</div><div class="pc-t">MMA 308L &middot; &Oslash;4.0</div></div></div>
+<div class="pc hl"><div class="pc-cb">NEWCOFIL.308L10</div><div class="pc-body"><div class="pc-n">Filo MIG 308L &Oslash;1.0mm</div><div class="pc-d">MIG 308L &Oslash;1.0mm. Gas M12. Per 304/304L. Spessori 1.5&ndash;4mm. 15kg.</div><div class="pc-t">MIG 308L &middot; &Oslash;1.0</div></div></div>
+<div class="pc hl"><div class="pc-cb">NEWCOFIL.308L12</div><div class="pc-body"><div class="pc-n">Filo MIG 308L &Oslash;1.2mm</div><div class="pc-d">MIG 308L &Oslash;1.2mm. Gas M12. Spessori &gt;3mm. Deposizione uniforme. 15kg.</div><div class="pc-t">MIG 308L &middot; &Oslash;1.2</div></div></div>
+<div class="pc hl"><div class="pc-cb">NEWCOTIG.308L16</div><div class="pc-body"><div class="pc-n">CRINOXTIG 308L &Oslash;1.6mm</div><div class="pc-d">TIG inox 308L &Oslash;1.6mm. Ar puro. Alta purezza, finitura estetica. L=1000mm.</div><div class="pc-t">TIG 308L &middot; &Oslash;1.6</div></div></div>
+<div class="pc hl"><div class="pc-cb">NEWCOTIG.308L24</div><div class="pc-body"><div class="pc-n">CRINOXTIG 308L &Oslash;2.4mm</div><div class="pc-d">TIG 308L &Oslash;2.4mm. Spessori medi-alti 304. Gas Ar. L=1000mm. 5kg.</div><div class="pc-t">TIG 308L &middot; &Oslash;2.4</div></div></div>
+<div class="pc hl"><div class="pc-cb">NEWCOTIG.308L32</div><div class="pc-body"><div class="pc-n">CRINOXTIG 308L &Oslash;3.2mm</div><div class="pc-d">TIG 308L &Oslash;3.2mm. Spessori &gt;6mm su 304. Alta deposizione. Ar. 5kg.</div><div class="pc-t">TIG 308L &middot; &Oslash;3.2</div></div></div>
 </div>
-
-<!-- PAG 11 GENERICI + ABRASIVI -->
+<div class="dl"><div class="dln"></div><div class="dlb">INOX 316 / 316L &mdash; CON MOLIBDENO (AMBIENTE CORROSIVO)</div><div class="dln"></div></div>
+<div class="ab reveal">&nbsp;<span style="color:var(--y)">&#9632;</span>&nbsp;APPLICAZIONI: Chimica/Petrolchimica &middot; Offshore &middot; Farmaceutica &middot; Marino &middot; Ambienti con cloruri</div>
+<div class="grid g4 reveal">
+<div class="pc"><div class="pc-cb">NEWCOEL.1.316L25</div><div class="pc-body"><div class="pc-n">Cromarod 316L &Oslash;2.5mm</div><div class="pc-d">MMA 316L+Mo &Oslash;2.5mm. Per 316/316L ambienti marini. DC+. Conf. 2kg.</div><div class="pc-t">MMA 316L &middot; Mo &middot; &Oslash;2.5</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOEL.1.316L32</div><div class="pc-body"><div class="pc-n">Cromarod 316L &Oslash;3.2mm</div><div class="pc-d">316L &Oslash;3.2mm. Standard industria chimica e marino. DC+. Conf. 2kg.</div><div class="pc-t">MMA 316L &middot; Mo &middot; &Oslash;3.2</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOEL.1.316L40</div><div class="pc-body"><div class="pc-n">Cromarod 316L &Oslash;4.0mm</div><div class="pc-d">316L &Oslash;4.0mm. Grandi spessori. Max resistenza pitting. DC+.</div><div class="pc-t">MMA 316L &middot; Mo &middot; &Oslash;4.0</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOFIL.316L10</div><div class="pc-body"><div class="pc-n">Filo MIG 316L &Oslash;1.0mm</div><div class="pc-d">MIG 316L+Mo &Oslash;1.0mm. Gas M12. Per 316/316L. Spessori 1.5&ndash;4mm. 15kg.</div><div class="pc-t">MIG 316L &middot; Mo &middot; &Oslash;1.0</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOFIL.316L12</div><div class="pc-body"><div class="pc-n">Filo MIG 316L &Oslash;1.2mm</div><div class="pc-d">316L+Mo &Oslash;1.2mm. Spessori &gt;3mm. Gas M12. Resistenza pitting. 15kg.</div><div class="pc-t">MIG 316L &middot; Mo &middot; &Oslash;1.2</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOTIG.316L16</div><div class="pc-body"><div class="pc-n">CRINOXTIG 316L &Oslash;1.6mm</div><div class="pc-d">TIG 316L+Mo &Oslash;1.6mm. Per 316/316L. Gas Ar. Purezza elevata. 5kg.</div><div class="pc-t">TIG 316L &middot; Mo &middot; &Oslash;1.6</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOTIG.316L24</div><div class="pc-body"><div class="pc-n">CRINOXTIG 316L &Oslash;2.4mm</div><div class="pc-d">TIG 316L+Mo &Oslash;2.4mm. Spessori medi 316. Gas Ar. L=1000mm. 5kg.</div><div class="pc-t">TIG 316L &middot; Mo &middot; &Oslash;2.4</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOTIG.316L32</div><div class="pc-body"><div class="pc-n">CRINOXTIG 316L &Oslash;3.2mm</div><div class="pc-d">TIG 316L &Oslash;3.2mm. Spessori alti. Massima corrosion resistance. Gas Ar.</div><div class="pc-t">TIG 316L &middot; Mo &middot; &Oslash;3.2</div></div></div>
+</div>
+<div class="pf"><span class="pfb">TECNOSALDO</span><span>www.tecnosaldo.it &middot; +39 393 4775160</span><span>pag. 10</span></div>
+</div>
 <div class="page" id="p10">
-  <div class="ph"><div class="ph-l"><div class="sn">09 · GENERICI &amp; ABRASIVI</div><div class="st">TORCE MIG · RIDUTTORI · ABRASIVI</div><div class="ss">Torce · Riduttori · Cavi/Dinse · Dischi taglio/sbavatura/lamellari</div></div><div class="logo-wrap logo-sm"><div class="logo-ic">⚡</div><div><div class="logo-nm">TECNOSALDO</div></div></div></div>
-  <div class="sd"><div class="ln"></div><div class="lb">TORCE MIG E ACCESSORI</div><div class="ln"></div></div>
-  <div class="grid g4 reveal" style="margin-bottom:2.5mm">
-    <div class="pc"><div class="pc-code">NEWCOTRC.150</div><div class="pc-name">Torcia MIG 150A — 3m</div><div class="pc-desc">150A aria. Corpo ergonomico, guaina teflon, 3m. Connessione euro standard.</div><div class="pc-tags"><span class="tag y">MIG 150A</span><span class="tag ">EURO · 3M</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOTRC.200</div><div class="pc-name">Torcia MIG 200A — 3m</div><div class="pc-desc">200A aria. Pulsante 2/4T, guaina teflon, euro. 3m.</div><div class="pc-tags"><span class="tag y">MIG 200A</span><span class="tag ">EURO · 3M</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOTRC.250</div><div class="pc-name">Torcia MIG 250A — 4m</div><div class="pc-desc">250A aria. Corpo resistente, guaina CuSn. 4m. Connessione euro.</div><div class="pc-tags"><span class="tag y">MIG 250A</span><span class="tag ">EURO · 4M</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOTRC.320</div><div class="pc-name">Torcia MIG 320A — 4m</div><div class="pc-desc">320A aria. Per 300-350A. Guaina spirale acciaio. 4m. Ciclo 60%.</div><div class="pc-tags"><span class="tag y">MIG 320A</span><span class="tag ">EURO · 4M</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOTRC.400</div><div class="pc-name">Torcia MIG 400A — 5m</div><div class="pc-desc">400A industriale. 5m guaina spirale, corpo coibentato. EUR standard.</div><div class="pc-tags"><span class="tag y">MIG 400A</span><span class="tag ">EURO · 5M</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOTRC.500W</div><div class="pc-name">Torcia MIG 500A Acqua</div><div class="pc-desc">500A raffreddamento acqua. Utilizzo continuo intensivo. EUR 4m.</div><div class="pc-tags"><span class="tag y">MIG 500A</span><span class="tag ">ACQUA · 4M</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOTRC.36</div><div class="pc-name">Torcia PUSH-PULL Al</div><div class="pc-desc">Push-pull per alluminio. Motore integrato, guaina PTFE. Ø0.8–1.0mm. 4m.</div><div class="pc-tags"><span class="tag y">PUSH-PULL</span><span class="tag ">ALLUMINIO</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOTRC.50</div><div class="pc-name">Torcia Spool-on-Gun Al</div><div class="pc-desc">Spool gun Al. Bobinetta 100g integrata. Ø0.8–1.0mm. EUR 3m.</div><div class="pc-tags"><span class="tag y">SPOOL-GUN</span><span class="tag ">ALLUMINIO</span></div></div>
-  </div>
-  <div class="sd"><div class="ln"></div><div class="lb">RIDUTTORI, CAVI E CONNETTORI</div><div class="ln"></div></div>
-  <div class="grid g4 reveal" style="margin-bottom:2.5mm">
-    <div class="pc"><div class="pc-code">NEWCORID.CO2</div><div class="pc-name">Riduttore CO2 Flussometro</div><div class="pc-desc">Riduttore CO2 con flussometro 0–30 l/min. Per MIG/MAG. Manometro doppio.</div><div class="pc-tags"><span class="tag y">CO2</span><span class="tag ">FLUSSOMETRO</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCORID.AR</div><div class="pc-name">Riduttore Argon Flussometro</div><div class="pc-desc">Riduttore Ar/Ar+CO2 con flussometro 0–30 l/min. Per TIG e MIG inox/Al.</div><div class="pc-tags"><span class="tag y">Ar / M21</span><span class="tag ">FLUSSOMETRO</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOCA.50.5</div><div class="pc-name">Cavo Saldatura 50mm² 5m</div><div class="pc-desc">Cavo Cu-silicone 50mm² 5m. Flessibile, connettore Dinse 50 incluso.</div><div class="pc-tags"><span class="tag y">CAVO 50mm²</span><span class="tag ">DINSE 50 · 5M</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOCA.70.5</div><div class="pc-name">Cavo Saldatura 70mm² 5m</div><div class="pc-desc">70mm² 5m. Per 400-500A. Connettore Dinse 70. Guaina EPR UV.</div><div class="pc-tags"><span class="tag y">CAVO 70mm²</span><span class="tag ">DINSE 70 · 5M</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCODIN.35</div><div class="pc-name">Connettore Dinse 35 M/F</div><div class="pc-desc">Dinse 35 maschio+femmina. Per cavi 25–35mm². 200A. Ottone nichelato.</div><div class="pc-tags"><span class="tag ">DINSE 35</span><span class="tag ">200A · M+F</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCODIN.50</div><div class="pc-name">Connettore Dinse 50 M/F</div><div class="pc-desc">Dinse 50 maschio+femmina. Per cavi 35–50mm². 300A. Ottone massivo.</div><div class="pc-tags"><span class="tag ">DINSE 50</span><span class="tag ">300A · M+F</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCODIN.70</div><div class="pc-name">Connettore Dinse 70 M/F</div><div class="pc-desc">Dinse 70 per cavi 50–70mm². 400A. Montaggio rapido.</div><div class="pc-tags"><span class="tag ">DINSE 70</span><span class="tag ">400A · M+F</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOMOR.EMT</div><div class="pc-name">Morsetto di Massa EMT</div><div class="pc-desc">Morsetto a vite 400A. Apertura 60mm. Contatto a molla. Cavo 50mm² 3m.</div><div class="pc-tags"><span class="tag ">MORSETTO</span><span class="tag ">400A · 3M</span></div></div>
-  </div>
-  <div class="sd"><div class="ln"></div><div class="lb">ABRASIVI — DISCHI TAGLIO / SBAVATURA / LAMELLARI</div><div class="ln"></div></div>
-  <div class="grid g4 reveal">
-    <div class="pc"><div class="pc-code">NEWCODI.115T</div><div class="pc-name">Disco Taglio Inox Ø115×1mm</div><div class="pc-desc">Taglio ultrasottile 1mm Ø115. Inox/acciaio. Taglio netto. Conf. 25pz.</div><div class="pc-tags"><span class="tag y">TAGLIO INOX</span><span class="tag ">Ø115 · 1MM</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCODI.125T</div><div class="pc-name">Disco Taglio Inox Ø125×1mm</div><div class="pc-desc">Taglio 1mm Ø125. Bassa temperatura. Inox e acciaio. 25pz.</div><div class="pc-tags"><span class="tag y">TAGLIO INOX</span><span class="tag ">Ø125 · 1MM</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCODI.230T</div><div class="pc-name">Disco Taglio Ø230×2mm</div><div class="pc-desc">Ø230 smerigliatrice grande. Sp. 2mm. Acciaio strutturale e inox. 10pz.</div><div class="pc-tags"><span class="tag y">TAGLIO</span><span class="tag ">Ø230 · 2MM</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCODI.115S</div><div class="pc-name">Disco Sbavatura Ø115×6mm</div><div class="pc-desc">Sbavatura Ø115 sp.6mm. Acciaio e inox. Zinco Allumina. Lunga durata.</div><div class="pc-tags"><span class="tag ">SBAVATURA</span><span class="tag ">Ø115 · 6MM</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCODI.125S</div><div class="pc-name">Disco Sbavatura Ø125×6mm</div><div class="pc-desc">Sbavatura Ø125 sp.6mm. Alta asportazione. Grana 24. Resistente.</div><div class="pc-tags"><span class="tag ">SBAVATURA</span><span class="tag ">Ø125 · 6MM</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCODI.115L</div><div class="pc-name">Disco Lamellare Ø115 G40</div><div class="pc-desc">Lamellare Ø115 G40. Sbavatura e finitura acciaio/inox. Conf. 10pz.</div><div class="pc-tags"><span class="tag ">LAMELLARE</span><span class="tag ">Ø115 · G40</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCODI.125L80</div><div class="pc-name">Disco Lamellare Ø125 G80</div><div class="pc-desc">Lamellare Ø125 G80 per finitura media inox. Sul cordone di saldatura.</div><div class="pc-tags"><span class="tag ">LAMELLARE</span><span class="tag ">Ø125 · G80</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCODI.125L120</div><div class="pc-name">Disco Lamellare Ø125 G120</div><div class="pc-desc">G120 per finitura fine su inox e alluminio. Superficie a specchio. Ø125.</div><div class="pc-tags"><span class="tag ">LAMELLARE</span><span class="tag ">Ø125 · G120</span></div></div>
-  </div>
-  <div class="pf"><span class="br">TECNOSALDO</span><span>www.tecnosaldo.it · +39 393 4775160</span><span>pag. 11</span></div>
+<div class="phdr"><span class="phb">TECNOSALDO</span><span class="phc">09 &middot; Consumabili Generici &middot; Abrasivi</span><span class="phr">CATALOGO PRODOTTI 2026</span></div>
+<div class="sh reveal"><div class="sh-n">09</div><div class="sh-t"><div class="sh-tt">GENERICI + ABRASIVI</div><div class="sh-sub">Torce MIG &middot; Riduttori &middot; Cavi/Dinse &middot; Dischi</div></div></div>
+<div class="dl"><div class="dln"></div><div class="dlb">TORCE MIG E ACCESSORI</div><div class="dln"></div></div>
+<div class="grid g4 reveal" style="margin-bottom:2.5mm">
+<div class="pc"><div class="pc-cb">NEWCOTRC.150</div><div class="pc-body"><div class="pc-n">Torcia MIG 150A &mdash; 3m</div><div class="pc-d">150A aria. Corpo ergonomico, guaina teflon, 3m. Connessione euro standard.</div><div class="pc-t">MIG 150A &middot; EURO &middot; 3M</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOTRC.200</div><div class="pc-body"><div class="pc-n">Torcia MIG 200A &mdash; 3m</div><div class="pc-d">200A aria. Pulsante 2/4T, guaina teflon, euro. 3m.</div><div class="pc-t">MIG 200A &middot; EURO &middot; 3M</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOTRC.250</div><div class="pc-body"><div class="pc-n">Torcia MIG 250A &mdash; 4m</div><div class="pc-d">250A aria. Corpo resistente, guaina CuSn. 4m. Connessione euro.</div><div class="pc-t">MIG 250A &middot; EURO &middot; 4M</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOTRC.320</div><div class="pc-body"><div class="pc-n">Torcia MIG 320A &mdash; 4m</div><div class="pc-d">320A aria. Per 300&ndash;350A. Guaina spirale acciaio. 4m. Ciclo 60%.</div><div class="pc-t">MIG 320A &middot; EURO &middot; 4M</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOTRC.400</div><div class="pc-body"><div class="pc-n">Torcia MIG 400A &mdash; 5m</div><div class="pc-d">400A industriale. 5m guaina spirale, corpo coibentato.</div><div class="pc-t">MIG 400A &middot; EURO &middot; 5M</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOTRC.500W</div><div class="pc-body"><div class="pc-n">Torcia MIG 500A Acqua</div><div class="pc-d">500A raffreddamento acqua. Utilizzo continuo intensivo. EUR 4m.</div><div class="pc-t">MIG 500A &middot; ACQUA &middot; 4M</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOTRC.36</div><div class="pc-body"><div class="pc-n">Torcia PUSH-PULL Al</div><div class="pc-d">Push-pull per alluminio. Motore integrato, guaina PTFE. &Oslash;0.8&ndash;1.0mm. 4m.</div><div class="pc-t">PUSH-PULL &middot; ALLUMINIO</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOTRC.50</div><div class="pc-body"><div class="pc-n">Torcia Spool-on-Gun Al</div><div class="pc-d">Spool gun Al. Bobinetta 100g integrata. &Oslash;0.8&ndash;1.0mm. EUR 3m.</div><div class="pc-t">SPOOL-GUN &middot; ALLUMINIO</div></div></div>
 </div>
-
-<!-- PAG 12 DPI -->
+<div class="dl"><div class="dln"></div><div class="dlb">RIDUTTORI, CAVI E CONNETTORI DINSE</div><div class="dln"></div></div>
+<div class="grid g4 reveal" style="margin-bottom:2.5mm">
+<div class="pc"><div class="pc-cb">NEWCORID.CO2</div><div class="pc-body"><div class="pc-n">Riduttore CO2 Flussometro</div><div class="pc-d">Riduttore CO2 con flussometro 0&ndash;30 l/min. Per MIG/MAG. Manometro doppio.</div><div class="pc-t">CO2 &middot; FLUSSOMETRO</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCORID.AR</div><div class="pc-body"><div class="pc-n">Riduttore Argon Flussometro</div><div class="pc-d">Riduttore Ar/Ar+CO2 con flussometro 0&ndash;30 l/min. Per TIG e MIG inox/Al.</div><div class="pc-t">Ar / M21 &middot; FLUSSOMETRO</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOCA.50.5</div><div class="pc-body"><div class="pc-n">Cavo Saldatura 50mm&sup2; 5m</div><div class="pc-d">Cavo Cu-silicone 50mm&sup2; 5m. Flessibile, connettore Dinse 50 incluso.</div><div class="pc-t">CAVO 50mm&sup2; &middot; DINSE 50 &middot; 5M</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOCA.70.5</div><div class="pc-body"><div class="pc-n">Cavo Saldatura 70mm&sup2; 5m</div><div class="pc-d">70mm&sup2; 5m. Per 400&ndash;500A. Connettore Dinse 70. Guaina EPR UV.</div><div class="pc-t">CAVO 70mm&sup2; &middot; DINSE 70 &middot; 5M</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCODIN.35</div><div class="pc-body"><div class="pc-n">Connettore Dinse 35 M/F</div><div class="pc-d">Dinse 35 maschio+femmina. Per cavi 25&ndash;35mm&sup2;. 200A. Ottone nichelato.</div><div class="pc-t">DINSE 35 &middot; 200A &middot; M+F</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCODIN.50</div><div class="pc-body"><div class="pc-n">Connettore Dinse 50 M/F</div><div class="pc-d">Dinse 50 maschio+femmina. Per cavi 35&ndash;50mm&sup2;. 300A. Ottone massivo.</div><div class="pc-t">DINSE 50 &middot; 300A &middot; M+F</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCODIN.70</div><div class="pc-body"><div class="pc-n">Connettore Dinse 70 M/F</div><div class="pc-d">Dinse 70 per cavi 50&ndash;70mm&sup2;. 400A. Montaggio rapido.</div><div class="pc-t">DINSE 70 &middot; 400A &middot; M+F</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOMOR.EMT</div><div class="pc-body"><div class="pc-n">Morsetto di Massa EMT</div><div class="pc-d">Morsetto a vite 400A. Apertura 60mm. Contatto a molla. Cavo 50mm&sup2; 3m.</div><div class="pc-t">MORSETTO &middot; 400A &middot; 3M</div></div></div>
+</div>
+<div class="dl"><div class="dln"></div><div class="dlb">ABRASIVI &mdash; DISCHI TAGLIO / SBAVATURA / LAMELLARI</div><div class="dln"></div></div>
+<div class="grid g4 reveal">
+<div class="pc"><div class="pc-cb">NEWCODI.115T</div><div class="pc-body"><div class="pc-n">Disco Taglio Inox &Oslash;115&times;1mm</div><div class="pc-d">Taglio ultrasottile 1mm &Oslash;115. Inox/acciaio. Taglio netto. Conf. 25pz.</div><div class="pc-t">TAGLIO INOX &middot; &Oslash;115 &middot; 1MM</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCODI.125T</div><div class="pc-body"><div class="pc-n">Disco Taglio Inox &Oslash;125&times;1mm</div><div class="pc-d">Taglio 1mm &Oslash;125. Bassa temperatura. Inox e acciaio. 25pz.</div><div class="pc-t">TAGLIO INOX &middot; &Oslash;125 &middot; 1MM</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCODI.230T</div><div class="pc-body"><div class="pc-n">Disco Taglio &Oslash;230&times;2mm</div><div class="pc-d">&Oslash;230 smerigliatrice grande. Sp. 2mm. Acciaio strutturale e inox. 10pz.</div><div class="pc-t">TAGLIO &middot; &Oslash;230 &middot; 2MM</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCODI.115S</div><div class="pc-body"><div class="pc-n">Disco Sbavatura &Oslash;115&times;6mm</div><div class="pc-d">Sbavatura &Oslash;115 sp.6mm. Acciaio e inox. Zinco Allumina. Lunga durata.</div><div class="pc-t">SBAVATURA &middot; &Oslash;115 &middot; 6MM</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCODI.125S</div><div class="pc-body"><div class="pc-n">Disco Sbavatura &Oslash;125&times;6mm</div><div class="pc-d">Sbavatura &Oslash;125 sp.6mm. Alta asportazione. Grana 24. Resistente.</div><div class="pc-t">SBAVATURA &middot; &Oslash;125 &middot; 6MM</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCODI.115L</div><div class="pc-body"><div class="pc-n">Disco Lamellare &Oslash;115 G40</div><div class="pc-d">Lamellare &Oslash;115 G40. Sbavatura e finitura acciaio/inox. Conf. 10pz.</div><div class="pc-t">LAMELLARE &middot; &Oslash;115 &middot; G40</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCODI.125L80</div><div class="pc-body"><div class="pc-n">Disco Lamellare &Oslash;125 G80</div><div class="pc-d">Lamellare &Oslash;125 G80 per finitura media inox. Sul cordone di saldatura.</div><div class="pc-t">LAMELLARE &middot; &Oslash;125 &middot; G80</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCODI.125L120</div><div class="pc-body"><div class="pc-n">Disco Lamellare &Oslash;125 G120</div><div class="pc-d">G120 per finitura fine su inox e alluminio. Superficie a specchio. &Oslash;125.</div><div class="pc-t">LAMELLARE &middot; &Oslash;125 &middot; G120</div></div></div>
+</div>
+<div class="pf"><span class="pfb">TECNOSALDO</span><span>www.tecnosaldo.it &middot; +39 393 4775160</span><span>pag. 11</span></div>
+</div>
 <div class="page" id="p11">
-  <div class="ph"><div class="ph-l"><div class="sn">10 · DPI</div><div class="st">DISPOSITIVI DI PROTEZIONE INDIVIDUALE</div><div class="ss">Guanti · Caschi · Grembiuli · Cuffie · Respiratori · Ghette</div></div><div class="logo-wrap logo-sm"><div class="logo-ic">⚡</div><div><div class="logo-nm">TECNOSALDO</div></div></div></div>
-  <div class="sd"><div class="ln"></div><div class="lb">GUANTI E ABBIGLIAMENTO PROTETTIVO</div><div class="ln"></div></div>
-  <div class="grid g4 reveal" style="margin-bottom:2.5mm">
-    <div class="pc"><div class="pc-code">NEWCOGUA.01</div><div class="pc-name">Guanti Crosta Bovina MIG</div><div class="pc-desc">Crosta bovina. Polsino lungo rinforzato. Protezione calore e scintille. EN 12477 Tipo B.</div><div class="pc-tags"><span class="tag y">GUANTI</span><span class="tag ">MIG/MMA · EN12477</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOGUA.02</div><div class="pc-name">Guanti TIG Caprettino</div><div class="pc-desc">Caprettino spaccato. Alta sensibilità tattile. Taglia M/L/XL. EN 12477 Tipo A.</div><div class="pc-tags"><span class="tag y">GUANTI TIG</span><span class="tag ">TIPO A</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOGUA.03</div><div class="pc-name">Guanti Sfoderati 5D MMA</div><div class="pc-desc">5 dita crosta bovina spessa. Per MMA e taglio plasma. Resistenza termica alta.</div><div class="pc-tags"><span class="tag y">GUANTI MMA</span><span class="tag ">PLASMA</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOGUA.04</div><div class="pc-name">Muffola Spaccato Lunga</div><div class="pc-desc">Spaccato bovino 45cm. Protezione massima per SubArc e MIG pesante.</div><div class="pc-tags"><span class="tag y">MUFFOLA</span><span class="tag ">45CM</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOGRE.01</div><div class="pc-name">Grembiule Spaccato 80cm</div><div class="pc-desc">Crosta bovina 80cm regolabile. EN ISO 11611 Cl.1.</div><div class="pc-tags"><span class="tag y">GREMBIULE</span><span class="tag ">EN11611 · 80CM</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOGRE.02</div><div class="pc-name">Grembiule Spaccato 100cm</div><div class="pc-desc">100cm copertura completa. Per carpenteria pesante. EN ISO 11611 Cl.2.</div><div class="pc-tags"><span class="tag y">GREMBIULE</span><span class="tag ">EN11611 · 100CM</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOMAN.01</div><div class="pc-name">Manicotti Spaccato Bovino</div><div class="pc-desc">Coppia manicotti crosta bovina, elastico. EN ISO 11611. L=45cm.</div><div class="pc-tags"><span class="tag y">MANICOTTI</span><span class="tag ">EN11611</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOGIU.01</div><div class="pc-name">Giacca Saldatore Cotone FR</div><div class="pc-desc">Cotone trattato FR. Alta mobilità. Taglia M–XXXL. EN ISO 11611.</div><div class="pc-tags"><span class="tag y">GIACCA FR</span><span class="tag ">COTONE</span></div></div>
-  </div>
-  <div class="sd"><div class="ln"></div><div class="lb">MASCHERE · PROTEZIONE TESTA · NOVITÀ DPI 2026</div><div class="ln"></div></div>
-  <div class="grid g4 reveal">
-    <div class="pc"><div class="pc-code">NEWCOC6</div><div class="pc-name">Casco Saldatura C6</div><div class="pc-desc">DIN 11 fisso. Vetro passivo 98×88mm. Testiera regolabile. EN 175.</div><div class="pc-tags"><span class="tag y">CASCO DIN11</span><span class="tag ">FISSO</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOC6A</div><div class="pc-name">Casco Basculante C6A</div><div class="pc-desc">DIN 11 flip-up. Controllo rapido saldatura. EN 175.</div><div class="pc-tags"><span class="tag y">CASCO FLIP-UP</span><span class="tag ">DIN11</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOC9</div><div class="pc-name">Casco Auto-Osc. C9</div><div class="pc-desc">Auto-osc. DIN 9–13. Solare+batteria. 98×88mm. EN 379, EN 175.</div><div class="pc-tags"><span class="tag y">AUTO-OSC.</span><span class="tag ">DIN 9-13</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOC10</div><div class="pc-name">Casco Auto-Osc. C10 4 sensori</div><div class="pc-desc">4 sensori DIN 9–13. Commutazione 0.04ms. Shade esterno.</div><div class="pc-tags"><span class="tag y">AUTO-OSC.</span><span class="tag ">4 SENSORI</span></div></div>
-    <div class="pc hl"><div class="pc-code">MILL287797</div><div class="pc-name">Casco Auto-Osc. Miller Elite</div><div class="pc-desc">Miller DIN 9–13. Solare+batteria. 98×88mm. EN 379, EN 175. Per MIG/MMA/TIG.</div><div class="pc-tags"><span class="tag y">MILLER ELITE</span><span class="tag ">DIN 9-13</span><span class="tag g">NOVITÀ</span></div></div>
-    <div class="pc hl"><div class="pc-code">3M-8512</div><div class="pc-name">Respiratore 3M 8512 FFP2</div><div class="pc-desc">Semimaschera FFP2 valvola. Fumi saldatura. EN 149:2001+A1. Conf. 5pz.</div><div class="pc-tags"><span class="tag y">RESPIRATORE</span><span class="tag ">FFP2</span><span class="tag g">NOVITÀ</span></div></div>
-    <div class="pc hl"><div class="pc-code">TRIG-GHETT</div><div class="pc-name">Ghette Crosta Bovina</div><div class="pc-desc">Crosta bovina piedi/caviglie. Lacci regolabili. EN ISO 11611.</div><div class="pc-tags"><span class="tag y">GHETTE</span><span class="tag ">EN11611</span><span class="tag g">NOVITÀ</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOANT.01</div><div class="pc-name">Antifono Monouso SNR28</div><div class="pc-desc">Tappi PU monouso. SNR 28dB. EN 352-2. Conf. 50 paia.</div><div class="pc-tags"><span class="tag ">ANTIFONO</span><span class="tag ">SNR28</span></div></div>
-  </div>
-  <div class="pf"><span class="br">TECNOSALDO</span><span>www.tecnosaldo.it · +39 393 4775160</span><span>pag. 12</span></div>
+<div class="phdr"><span class="phb">TECNOSALDO</span><span class="phc">10 &middot; DPI &middot; Dispositivi di Protezione Individuale</span><span class="phr">CATALOGO PRODOTTI 2026</span></div>
+<div class="sh reveal"><div class="sh-n">10</div><div class="sh-t"><div class="sh-tt">DPI &mdash; PROTEZIONE INDIVIDUALE</div><div class="sh-sub">Guanti &middot; Caschi &middot; Grembiuli &middot; Respiratori &middot; Ghette</div></div></div>
+<div class="ab reveal">&nbsp;<span style="color:var(--y)">&#9632;</span>&nbsp;NORMATIVA: Tutti i DPI sono conformi al Reg. (UE) 2016/425. Verificare il DPI corretto in base alla valutazione del rischio DVR aziendale.</div>
+<div class="dl"><div class="dln"></div><div class="dlb">GUANTI E ABBIGLIAMENTO PROTETTIVO</div><div class="dln"></div></div>
+<div class="grid g4 reveal" style="margin-bottom:2.5mm">
+<div class="pc"><div class="pc-cb">NEWCOGUA.01</div><div class="pc-body"><div class="pc-n">Guanti Crosta Bovina MIG</div><div class="pc-d">Crosta bovina. Polsino lungo rinforzato. Protezione calore e scintille. EN 12477 Tipo B.</div><div class="pc-t">GUANTI &middot; MIG/MMA &middot; EN12477</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOGUA.02</div><div class="pc-body"><div class="pc-n">Guanti TIG Caprettino</div><div class="pc-d">Caprettino spaccato. Alta sensibilit&agrave; tattile. Taglia M/L/XL. EN 12477 Tipo A.</div><div class="pc-t">GUANTI TIG &middot; TIPO A</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOGUA.03</div><div class="pc-body"><div class="pc-n">Guanti Sfoderati 5D MMA</div><div class="pc-d">5 dita crosta bovina spessa. Per MMA e taglio plasma. Resistenza termica alta.</div><div class="pc-t">GUANTI MMA &middot; PLASMA</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOGUA.04</div><div class="pc-body"><div class="pc-n">Muffola Spaccato Lunga</div><div class="pc-d">Spaccato bovino 45cm. Protezione massima per SubArc e MIG pesante.</div><div class="pc-t">MUFFOLA &middot; 45CM</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOGRE.01</div><div class="pc-body"><div class="pc-n">Grembiule Spaccato 80cm</div><div class="pc-d">Crosta bovina 80cm regolabile. EN ISO 11611 Cl.1.</div><div class="pc-t">GREMBIULE &middot; EN11611 &middot; 80CM</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOGRE.02</div><div class="pc-body"><div class="pc-n">Grembiule Spaccato 100cm</div><div class="pc-d">100cm copertura completa. Per carpenteria pesante. EN ISO 11611 Cl.2.</div><div class="pc-t">GREMBIULE &middot; EN11611 &middot; 100CM</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOMAN.01</div><div class="pc-body"><div class="pc-n">Manicotti Spaccato Bovino</div><div class="pc-d">Coppia manicotti crosta bovina, elastico. EN ISO 11611. L=45cm.</div><div class="pc-t">MANICOTTI &middot; EN11611</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOGIU.01</div><div class="pc-body"><div class="pc-n">Giacca Saldatore Cotone FR</div><div class="pc-d">Cotone trattato FR. Alta mobilit&agrave;. Taglia M&ndash;XXXL. EN ISO 11611.</div><div class="pc-t">GIACCA FR &middot; COTONE</div></div></div>
 </div>
-
-<!-- PAG 13 RICAMBI + TIG -->
+<div class="dl"><div class="dln"></div><div class="dlb">MASCHERE &middot; PROTEZIONE TESTA &middot; NOVIT&Agrave; DPI 2026</div><div class="dln"></div></div>
+<div class="grid g4 reveal">
+<div class="pc"><div class="pc-cb">NEWCOC6</div><div class="pc-body"><div class="pc-n">Casco Saldatura C6</div><div class="pc-d">DIN 11 fisso. Vetro passivo 98&times;88mm. Testiera regolabile. EN 175.</div><div class="pc-t">CASCO DIN11 &middot; FISSO</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOC6A</div><div class="pc-body"><div class="pc-n">Casco Basculante C6A</div><div class="pc-d">DIN 11 flip-up. Controllo rapido saldatura. EN 175.</div><div class="pc-t">CASCO FLIP-UP &middot; DIN11</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOC9</div><div class="pc-body"><div class="pc-n">Casco Auto-Osc. C9</div><div class="pc-d">Auto-osc. DIN 9&ndash;13. Solare+batteria. 98&times;88mm. EN 379, EN 175.</div><div class="pc-t">AUTO-OSC. &middot; DIN 9-13</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOC10</div><div class="pc-body"><div class="pc-n">Casco Auto-Osc. C10 4 sens.</div><div class="pc-d">4 sensori DIN 9&ndash;13. Commutazione 0.04ms. Shade esterno.</div><div class="pc-t">AUTO-OSC. &middot; 4 SENSORI</div></div></div>
+<div class="pc hl"><div class="pc-cb">MILL287797</div><div class="pc-body"><div class="pc-n">Casco Auto-Osc. Miller Elite</div><div class="pc-d">Miller DIN 9&ndash;13. Solare+batteria. 98&times;88mm. EN 379, EN 175. Per MIG/MMA/TIG.</div><div class="pc-t">MILLER ELITE &middot; DIN 9-13 &middot; NOVIT&Agrave;</div></div></div>
+<div class="pc hl"><div class="pc-cb">3M-8512</div><div class="pc-body"><div class="pc-n">Respiratore 3M 8512 FFP2</div><div class="pc-d">Semimaschera FFP2 valvola. Fumi saldatura. EN 149:2001+A1. Conf. 5pz.</div><div class="pc-t">RESPIRATORE &middot; FFP2 &middot; NOVIT&Agrave;</div></div></div>
+<div class="pc hl"><div class="pc-cb">TRIG-GHETT</div><div class="pc-body"><div class="pc-n">Ghette Crosta Bovina</div><div class="pc-d">Crosta bovina piedi/caviglie. Lacci regolabili. EN ISO 11611.</div><div class="pc-t">GHETTE &middot; EN11611 &middot; NOVIT&Agrave;</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOANT.01</div><div class="pc-body"><div class="pc-n">Antifono Monouso SNR28</div><div class="pc-d">Tappi PU monouso. SNR 28dB. EN 352-2. Conf. 50 paia.</div><div class="pc-t">ANTIFONO &middot; SNR28</div></div></div>
+</div>
+<div class="pf"><span class="pfb">TECNOSALDO</span><span>www.tecnosaldo.it &middot; +39 393 4775160</span><span>pag. 12</span></div>
+</div>
 <div class="page" id="p12">
-  <div class="ph"><div class="ph-l"><div class="sn">11 · RICAMBI &amp; TIG</div><div class="st">RICAMBI MASCHERE · ACCESSORI TIG</div><div class="ss">Vetri · Policarbonato · Testiere · Tungsteno · Torce WP · Kit</div></div><div class="logo-wrap logo-sm"><div class="logo-ic">⚡</div><div><div class="logo-nm">TECNOSALDO</div></div></div></div>
-  <div class="sd"><div class="ln"></div><div class="lb">VETRI PROTETTIVI INCOLORI &amp; INATTINICI</div><div class="ln"></div></div>
-  <div class="grid g4 reveal" style="margin-bottom:2.5mm">
-    <div class="pc"><div class="pc-code">NEWCOVA.VB.001</div><div class="pc-name">Vetro Incolore 75×98mm</div><div class="pc-desc">Incolore 75×98mm sp.2mm. Protezione schegge e spruzzi. Conf. 10pz.</div><div class="pc-tags"><span class="tag ">VETRO</span><span class="tag ">75x98</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOVA.VB.002</div><div class="pc-name">Vetro Incolore 50×105mm</div><div class="pc-desc">50×105mm maschere a mano e flip-up. Alta chiarezza. Conf. 10pz.</div><div class="pc-tags"><span class="tag ">VETRO</span><span class="tag ">50x105</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOVA.VB.003</div><div class="pc-name">Vetro Incolore 90×110mm</div><div class="pc-desc">90×110mm maschere maxi. Alta trasparenza. Conf. 10pz.</div><div class="pc-tags"><span class="tag ">VETRO</span><span class="tag ">90x110</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOVA.VI.021D10</div><div class="pc-name">Vetro Inattinico DIN 10</div><div class="pc-desc">DIN 10 75×98mm per MIG leggera e MMA. EN 169. Conf. 10pz.</div><div class="pc-tags"><span class="tag y">DIN 10</span><span class="tag ">MMA/MIG</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOVA.VI.021D11</div><div class="pc-name">Vetro Inattinico DIN 11</div><div class="pc-desc">DIN 11 75×98mm per MIG/MAG alta corrente. EN 169. Conf. 10pz.</div><div class="pc-tags"><span class="tag y">DIN 11</span><span class="tag ">MIG/MAG</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOVA.VI.021D12</div><div class="pc-name">Vetro Inattinico DIN 12</div><div class="pc-desc">DIN 12 75×98mm per alta intensità e plasma. EN 169. Conf. 10pz.</div><div class="pc-tags"><span class="tag y">DIN 12</span><span class="tag ">PLASMA</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOVA.VA.021</div><div class="pc-name">Lastrina PC 75×98mm</div><div class="pc-desc">Policarbonato 75×98mm protezione interna gruppo ottico. Conf. 10pz.</div><div class="pc-tags"><span class="tag ">PC</span><span class="tag ">75x98</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOVA.VA.022</div><div class="pc-name">Lastrina PC 53×108mm</div><div class="pc-desc">PC 53×108mm maschere auto-osc. a visiera stretta. Conf. 10pz.</div><div class="pc-tags"><span class="tag ">PC</span><span class="tag ">53x108</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOVA.VA.023</div><div class="pc-name">Lastrina PC 90×110mm</div><div class="pc-desc">PC 90×110mm maschere maxi. Alta trasparenza. Conf. 10pz.</div><div class="pc-tags"><span class="tag ">PC</span><span class="tag ">90x110</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOVA.CA.006</div><div class="pc-name">Testiera Regolabile Univ.</div><div class="pc-desc">Testiera ricambio universale. Regolabile altezza e profondità.</div><div class="pc-tags"><span class="tag ">TESTIERA</span><span class="tag ">UNIVERSALE</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOVA.CA.AC1</div><div class="pc-name">Assorbitore Impatti C6/C6A</div><div class="pc-desc">Assorbitore ricambio caschi C6 e C6A.</div><div class="pc-tags"><span class="tag ">CASCO</span><span class="tag ">C6 · C6A</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOVA.CS.01</div><div class="pc-name">Cuffia Cotone — Blu</div><div class="pc-desc">Cuffia interna cotone caschi. Lavabile. Comfort prolungato.</div><div class="pc-tags"><span class="tag ">CUFFIA</span><span class="tag ">COTONE</span></div></div>
-  </div>
-  <div class="sd"><div class="ln"></div><div class="lb">ELETTRODI TUNGSTENO &amp; TORCE TIG WP</div><div class="ln"></div></div>
-  <div class="grid g4 reveal">
-    <div class="pc"><div class="pc-code">NEWCOEL.CE.16</div><div class="pc-name">Ceriato WC20 Ø1.6mm</div><div class="pc-desc">WC20 AC/DC HF. Lunga durata. Inox e acciaio. Grigio. 10pz.</div><div class="pc-tags"><span class="tag y">WC20 · GRIGIO</span><span class="tag ">1.6MM</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOEL.CE.24</div><div class="pc-name">Ceriato WC20 Ø2.4mm</div><div class="pc-desc">WC20 Ø2.4mm 150–250A. Inox, acciaio, rame. Grigio. 10pz.</div><div class="pc-tags"><span class="tag y">WC20 · GRIGIO</span><span class="tag ">2.4MM</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOEL.L2.16</div><div class="pc-name">Lantaniato WL2 Ø1.6mm</div><div class="pc-desc">WL2 DC+ eccellente stabilità arco. Inox e titanio. Blu. 10pz.</div><div class="pc-tags"><span class="tag y">WL2 · BLU</span><span class="tag ">1.6MM</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOEL.L2.24</div><div class="pc-name">Lantaniato WL2 Ø2.4mm</div><div class="pc-desc">WL2 Ø2.4mm. Alte correnti, inox, titanio. Blu. 10pz.</div><div class="pc-tags"><span class="tag y">WL2 · BLU</span><span class="tag ">2.4MM</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOEL.P.16</div><div class="pc-name">Puro W20 Ø1.6mm</div><div class="pc-desc">W20 puro TIG AC alluminio. Punta a sfera in AC. Verde. 10pz.</div><div class="pc-tags"><span class="tag y">W20 · VERDE</span><span class="tag ">AC · ALLUMINIO</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOEL.WR.16</div><div class="pc-name">Toriato WR20 Ø1.6mm</div><div class="pc-desc">WR20 DC-. Massima durata. Inox, titanio, nichel. Rosso. 10pz.</div><div class="pc-tags"><span class="tag y">WR20 · ROSSO</span><span class="tag ">DC-</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOWP-17</div><div class="pc-name">Corpo Torcia WP-17 150A</div><div class="pc-desc">150A aria. Standard universale WP-17. EUR. Per inox e acciaio.</div><div class="pc-tags"><span class="tag y">WP-17</span><span class="tag ">150A · ARIA</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOWP-18</div><div class="pc-name">Corpo Torcia WP-18 350A</div><div class="pc-desc">350A aria. Alta capacità termica per uso intensivo. EUR.</div><div class="pc-tags"><span class="tag y">WP-18</span><span class="tag ">350A · ARIA</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOWP-26</div><div class="pc-name">Corpo Torcia WP-26 200A</div><div class="pc-desc">200A aria. Compatta ed ergonomica. Per inox e alluminio. EUR.</div><div class="pc-tags"><span class="tag y">WP-26</span><span class="tag ">200A</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOKT.17.16</div><div class="pc-name">Kit WP-17 Ø1.6mm</div><div class="pc-desc">Pinze, portapinza, cappellotti, ugello ceramica. WP-17 Ø1.6mm.</div><div class="pc-tags"><span class="tag y">KIT WP-17</span><span class="tag ">1.6MM</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOKT.17.24</div><div class="pc-name">Kit WP-17 Ø2.4mm</div><div class="pc-desc">Kit completo WP-17 per Ø2.4mm. Configurazione immediata.</div><div class="pc-tags"><span class="tag y">KIT WP-17</span><span class="tag ">2.4MM</span></div></div>
-    <div class="pc"><div class="pc-code">NEWCOKT.9.16</div><div class="pc-name">Kit WP-9 Ø1.6mm</div><div class="pc-desc">Kit torce WP-9/20/25 Ø1.6mm. Accessori originali.</div><div class="pc-tags"><span class="tag y">KIT WP-9</span><span class="tag ">1.6MM</span></div></div>
-  </div>
-  <div class="pf"><span class="br">TECNOSALDO</span><span>www.tecnosaldo.it · +39 393 4775160</span><span>pag. 13</span></div>
+<div class="phdr"><span class="phb">TECNOSALDO</span><span class="phc">11 &middot; Ricambi Maschere &middot; Accessori TIG</span><span class="phr">CATALOGO PRODOTTI 2026</span></div>
+<div class="sh reveal"><div class="sh-n">11</div><div class="sh-t"><div class="sh-tt">RICAMBI + ACCESSORI TIG</div><div class="sh-sub">Vetri &middot; Policarbonato &middot; Tungsteno &middot; Torce WP &middot; Kit</div></div></div>
+<div class="dl"><div class="dln"></div><div class="dlb">VETRI PROTETTIVI INCOLORI &amp; INATTINICI</div><div class="dln"></div></div>
+<div class="grid g4 reveal" style="margin-bottom:2.5mm">
+<div class="pc"><div class="pc-cb">NEWCOVA.VB.001</div><div class="pc-body"><div class="pc-n">Vetro Incolore 75&times;98mm</div><div class="pc-d">Incolore 75&times;98mm sp.2mm. Protezione schegge e spruzzi. Conf. 10pz.</div><div class="pc-t">VETRO &middot; 75x98</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOVA.VB.002</div><div class="pc-body"><div class="pc-n">Vetro Incolore 50&times;105mm</div><div class="pc-d">50&times;105mm maschere a mano e flip-up. Alta chiarezza. Conf. 10pz.</div><div class="pc-t">VETRO &middot; 50x105</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOVA.VB.003</div><div class="pc-body"><div class="pc-n">Vetro Incolore 90&times;110mm</div><div class="pc-d">90&times;110mm maschere maxi. Alta trasparenza. Conf. 10pz.</div><div class="pc-t">VETRO &middot; 90x110</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOVA.VI.021D10</div><div class="pc-body"><div class="pc-n">Vetro Inattinico DIN 10</div><div class="pc-d">DIN 10 75&times;98mm per MIG leggera e MMA. EN 169. Conf. 10pz.</div><div class="pc-t">DIN 10 &middot; MMA/MIG</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOVA.VI.021D11</div><div class="pc-body"><div class="pc-n">Vetro Inattinico DIN 11</div><div class="pc-d">DIN 11 75&times;98mm per MIG/MAG alta corrente. EN 169. Conf. 10pz.</div><div class="pc-t">DIN 11 &middot; MIG/MAG</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOVA.VI.021D12</div><div class="pc-body"><div class="pc-n">Vetro Inattinico DIN 12</div><div class="pc-d">DIN 12 75&times;98mm per alta intensit&agrave; e plasma. EN 169. Conf. 10pz.</div><div class="pc-t">DIN 12 &middot; PLASMA</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOVA.VA.021</div><div class="pc-body"><div class="pc-n">Lastrina PC 75&times;98mm</div><div class="pc-d">Policarbonato 75&times;98mm protezione interna gruppo ottico. Conf. 10pz.</div><div class="pc-t">PC &middot; 75x98</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOVA.VA.022</div><div class="pc-body"><div class="pc-n">Lastrina PC 53&times;108mm</div><div class="pc-d">PC 53&times;108mm maschere auto-osc. a visiera stretta. Conf. 10pz.</div><div class="pc-t">PC &middot; 53x108</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOVA.VA.023</div><div class="pc-body"><div class="pc-n">Lastrina PC 90&times;110mm</div><div class="pc-d">PC 90&times;110mm maschere maxi. Alta trasparenza. Conf. 10pz.</div><div class="pc-t">PC &middot; 90x110</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOVA.CA.006</div><div class="pc-body"><div class="pc-n">Testiera Regolabile Univ.</div><div class="pc-d">Testiera ricambio universale. Regolabile altezza e profondit&agrave;.</div><div class="pc-t">TESTIERA &middot; UNIVERSALE</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOVA.CA.AC1</div><div class="pc-body"><div class="pc-n">Assorbitore Impatti C6/C6A</div><div class="pc-d">Assorbitore ricambio caschi C6 e C6A.</div><div class="pc-t">CASCO &middot; C6 &middot; C6A</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOVA.CS.01</div><div class="pc-body"><div class="pc-n">Cuffia Cotone &mdash; Blu</div><div class="pc-d">Cuffia interna cotone caschi. Lavabile. Comfort prolungato.</div><div class="pc-t">CUFFIA &middot; COTONE</div></div></div>
 </div>
-
-<!-- PAG 14 SERVIZI + CONTATTI -->
+<div class="dl"><div class="dln"></div><div class="dlb">ELETTRODI TUNGSTENO &amp; TORCE TIG WP</div><div class="dln"></div></div>
+<div class="grid g4 reveal">
+<div class="pc"><div class="pc-cb">NEWCOEL.CE.16</div><div class="pc-body"><div class="pc-n">Ceriato WC20 &Oslash;1.6mm</div><div class="pc-d">WC20 AC/DC HF. Lunga durata. Inox e acciaio. Grigio. 10pz.</div><div class="pc-t">WC20 &middot; GRIGIO &middot; 1.6MM</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOEL.CE.24</div><div class="pc-body"><div class="pc-n">Ceriato WC20 &Oslash;2.4mm</div><div class="pc-d">WC20 &Oslash;2.4mm 150&ndash;250A. Inox, acciaio, rame. Grigio. 10pz.</div><div class="pc-t">WC20 &middot; GRIGIO &middot; 2.4MM</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOEL.L2.16</div><div class="pc-body"><div class="pc-n">Lantaniato WL2 &Oslash;1.6mm</div><div class="pc-d">WL2 DC+ eccellente stabilit&agrave; arco. Inox e titanio. Blu. 10pz.</div><div class="pc-t">WL2 &middot; BLU &middot; 1.6MM</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOEL.L2.24</div><div class="pc-body"><div class="pc-n">Lantaniato WL2 &Oslash;2.4mm</div><div class="pc-d">WL2 &Oslash;2.4mm. Alte correnti, inox, titanio. Blu. 10pz.</div><div class="pc-t">WL2 &middot; BLU &middot; 2.4MM</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOEL.P.16</div><div class="pc-body"><div class="pc-n">Puro W20 &Oslash;1.6mm</div><div class="pc-d">W20 puro TIG AC alluminio. Punta a sfera in AC. Verde. 10pz.</div><div class="pc-t">W20 &middot; VERDE &middot; AC &middot; AL</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOEL.WR.16</div><div class="pc-body"><div class="pc-n">Toriato WR20 &Oslash;1.6mm</div><div class="pc-d">WR20 DC-. Massima durata. Inox, titanio, nichel. Rosso. 10pz.</div><div class="pc-t">WR20 &middot; ROSSO &middot; DC-</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOWP-17</div><div class="pc-body"><div class="pc-n">Corpo Torcia WP-17 150A</div><div class="pc-d">150A aria. Standard universale WP-17. EUR. Per inox e acciaio.</div><div class="pc-t">WP-17 &middot; 150A &middot; ARIA</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOWP-18</div><div class="pc-body"><div class="pc-n">Corpo Torcia WP-18 350A</div><div class="pc-d">350A aria. Alta capacit&agrave; termica per uso intensivo. EUR.</div><div class="pc-t">WP-18 &middot; 350A &middot; ARIA</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOWP-26</div><div class="pc-body"><div class="pc-n">Corpo Torcia WP-26 200A</div><div class="pc-d">200A aria. Compatta ed ergonomica. Per inox e alluminio. EUR.</div><div class="pc-t">WP-26 &middot; 200A</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOKT.17.16</div><div class="pc-body"><div class="pc-n">Kit WP-17 &Oslash;1.6mm</div><div class="pc-d">Pinze, portapinza, cappellotti, ugello ceramica. WP-17 &Oslash;1.6mm.</div><div class="pc-t">KIT WP-17 &middot; 1.6MM</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOKT.17.24</div><div class="pc-body"><div class="pc-n">Kit WP-17 &Oslash;2.4mm</div><div class="pc-d">Kit completo WP-17 per &Oslash;2.4mm. Configurazione immediata.</div><div class="pc-t">KIT WP-17 &middot; 2.4MM</div></div></div>
+<div class="pc"><div class="pc-cb">NEWCOKT.9.16</div><div class="pc-body"><div class="pc-n">Kit WP-9 &Oslash;1.6mm</div><div class="pc-d">Kit torce WP-9/20/25 &Oslash;1.6mm. Accessori originali.</div><div class="pc-t">KIT WP-9 &middot; 1.6MM</div></div></div>
+</div>
+<div class="pf"><span class="pfb">TECNOSALDO</span><span>www.tecnosaldo.it &middot; +39 393 4775160</span><span>pag. 13</span></div>
+</div>
 <div class="page" id="p13">
-  <div class="ph"><div class="ph-l"><div class="sn">12 · SERVIZI &amp; SUPPORTO</div><div class="st">ASSISTENZA · FORMAZIONE · NOLEGGIO</div><div class="ss">Prima, durante e dopo ogni fornitura — Toscana &amp; Liguria</div></div><div class="logo-wrap logo-sm"><div class="logo-ic">⚡</div><div><div class="logo-nm">TECNOSALDO</div></div></div></div>
-  <div class="svc-g reveal">
-    <div class="sc"><div class="sc-ico">🔍</div><div class="sc-t">CONSULENZA PRE-VENDITA</div><div class="sc-d">Analisi del processo e selezione prodotto. Sopralluogo gratuito in stabilimento su Toscana e Liguria.</div></div>
-    <div class="sc"><div class="sc-ico">🏭</div><div class="sc-t">DEMO IN LOCO</div><div class="sc-d">Dimostrazioni Miller e ESAB nel tuo stabilimento. Prova reale sul materiale del cliente con parametri ottimizzati.</div></div>
-    <div class="sc"><div class="sc-ico">🔧</div><div class="sc-t">ASSISTENZA TECNICA</div><div class="sc-d">Supporto telefonico, da remoto e in sede. Diagnosi rapida, risposta garantita entro 24h.</div></div>
-    <div class="sc"><div class="sc-ico">📦</div><div class="sc-t">RICAMBI ORIGINALI</div><div class="sc-d">Ricambi originali Miller e ESAB. Magazzino locale per ridurre tempi di fermo macchina.</div></div>
-    <div class="sc"><div class="sc-ico">🎓</div><div class="sc-t">FORMAZIONE</div><div class="sc-d">Corsi base e avanzati MIG/TIG/MMA con attestato. Formazione Cobot Welding 2026 per PMI.</div></div>
-    <div class="sc"><div class="sc-ico">📅</div><div class="sc-t">NOLEGGIO IMPIANTI</div><div class="sc-d">Noleggio breve/lungo periodo. Gamma Miller e ESAB disponibile rapidamente per picchi produttivi.</div></div>
-  </div>
-  <div class="cobot reveal" style="margin-top:3mm;margin-bottom:3mm"><div class="cobot-title">🤖 COBOT WELDING SERVICE — CHIAVI IN MANO <span class="cobot-new">NOVITÀ 2026</span></div><div class="cobot-body">Tecnosaldo è l'unico interlocutore regionale per soluzioni cobot welding per PMI in Toscana e Liguria. Servizio completo: analisi processo, selezione braccio cobot e generatore, installazione, programmazione traiettorie, qualifica WPS, formazione operatori (1 giornata). Sistemi <strong>Miller Auto-Continuum</strong> e <strong>ESAB eMIG</strong> con Universal Robots. Preventivo personalizzato gratuito.</div></div>
-  <div class="cbox reveal"><div class="cbox-t">📍 CONTATTI &amp; SEDE OPERATIVA</div><div class="cg"><div class="ci"><div class="ci-l">SEDE</div><div class="ci-v">Via Aurelia 430/432 — San Lazzaro Vecchio, Sarzana (SP)</div></div><div class="ci"><div class="ci-l">ZONE</div><div class="ci-v">Toscana (FI·SI·LU·AR·PT·GR·MS·LI·PI) · Liguria (SP·GE·SV·IM)</div></div><div class="ci"><div class="ci-l">TEL</div><div class="ci-v" style="color:var(--y);font-weight:700">+39 393 4775160</div></div><div class="ci"><div class="ci-l">EMAIL</div><div class="ci-v" style="color:var(--y)">commerciale@tecnosaldo.it</div></div><div class="ci"><div class="ci-l">WEB</div><div class="ci-v" style="color:var(--y)">www.tecnosaldo.it</div></div><div class="ci"><div class="ci-l">ORARI</div><div class="ci-v">Lun–Ven 08:00–18:00 · Sabato su appuntamento</div></div></div><div style="display:flex;justify-content:flex-end;margin-top:3mm;align-items:center;gap:4mm"><div style="text-align:right"><div style="font-size:7pt;color:var(--muted);margin-bottom:1mm">Inquadra per accedere al sito</div><div style="font-size:6.5pt;color:var(--y);font-family:'IBM Plex Mono',monospace">WWW.TECNOSALDO.IT</div></div><canvas id="qr2" width="70" height="70" style="border-radius:4px;background:#fff;padding:3px;display:block;flex-shrink:0"></canvas></div></div>
-  <div class="pf" style="margin-top:2mm"><span class="br">TECNOSALDO</span><span>www.tecnosaldo.it · +39 393 4775160 · commerciale@tecnosaldo.it</span><span>pag. 14</span></div>
+<div class="phdr"><span class="phb">TECNOSALDO</span><span class="phc">12 &middot; Servizi &middot; Assistenza &middot; Contatti</span><span class="phr">CATALOGO PRODOTTI 2026</span></div>
+<div class="sh reveal"><div class="sh-n">12</div><div class="sh-t"><div class="sh-tt">SERVIZI + CONTATTI</div><div class="sh-sub">Assistenza &middot; Formazione &middot; Noleggio &middot; Demo &middot; Prima, durante e dopo ogni fornitura</div></div></div>
+<div class="svc-g reveal">
+  <div class="sc"><div class="sc-ico">&#128269;</div><div class="sc-t">CONSULENZA PRE-VENDITA</div><div class="sc-d">Analisi del processo e selezione prodotto. Sopralluogo gratuito in stabilimento su Toscana e Liguria.</div></div>
+  <div class="sc"><div class="sc-ico">&#127981;</div><div class="sc-t">DEMO IN LOCO</div><div class="sc-d">Dimostrazioni Miller e ESAB nel tuo stabilimento. Prova reale sul materiale del cliente con parametri ottimizzati.</div></div>
+  <div class="sc"><div class="sc-ico">&#128295;</div><div class="sc-t">ASSISTENZA TECNICA</div><div class="sc-d">Supporto telefonico, da remoto e in sede. Diagnosi rapida, risposta garantita entro 24h.</div></div>
+  <div class="sc"><div class="sc-ico">&#128230;</div><div class="sc-t">RICAMBI ORIGINALI</div><div class="sc-d">Ricambi originali Miller e ESAB. Magazzino locale per ridurre tempi di fermo macchina.</div></div>
+  <div class="sc"><div class="sc-ico">&#127891;</div><div class="sc-t">FORMAZIONE</div><div class="sc-d">Corsi base e avanzati MIG/TIG/MMA con attestato. Formazione Cobot Welding 2026 per PMI.</div></div>
+  <div class="sc"><div class="sc-ico">&#128197;</div><div class="sc-t">NOLEGGIO IMPIANTI</div><div class="sc-d">Noleggio breve/lungo periodo. Gamma Miller e ESAB disponibile rapidamente per picchi produttivi.</div></div>
 </div>
-
+<div class="cobot reveal"><div class="cobt">&#129302; MILLER &amp; ESAB &mdash; COBOT SERVICE CHIAVI IN MANO <span class="cobn">NOVIT&Agrave; 2026</span></div><div class="cobb">Tecnosaldo &egrave; l&apos;unico interlocutore regionale per soluzioni cobot welding per PMI in Toscana e Liguria. Servizio completo: analisi processo, selezione braccio cobot e generatore, installazione, programmazione traiettorie, qualifica WPS, formazione operatori (1 giornata). Sistemi <strong>Miller Auto-Continuum</strong> e <strong>ESAB eMIG</strong> con Universal Robots. Preventivo personalizzato gratuito.</div></div>
+<div class="cbox reveal">
+  <div class="cbox-t">&#128205; CONTATTI &amp; SEDE OPERATIVA</div>
+  <div class="cg">
+    <div class="ci"><div class="ci-l">SEDE</div><div class="ci-v">Via Aurelia 430/432 &mdash; San Lazzaro Vecchio, Sarzana (SP)</div></div>
+    <div class="ci"><div class="ci-l">ZONE</div><div class="ci-v">Toscana (FI&middot;SI&middot;LU&middot;AR&middot;PT&middot;GR&middot;MS&middot;LI&middot;PI) &middot; Liguria (SP&middot;GE&middot;SV&middot;IM)</div></div>
+    <div class="ci"><div class="ci-l">TEL</div><div class="ci-v" style="color:var(--y);font-weight:700">+39 393 4775160</div></div>
+    <div class="ci"><div class="ci-l">EMAIL</div><div class="ci-v" style="color:var(--y)">commerciale@tecnosaldo.it</div></div>
+    <div class="ci"><div class="ci-l">WEB</div><div class="ci-v" style="color:var(--y)">www.tecnosaldo.it</div></div>
+    <div class="ci"><div class="ci-l">ORARI</div><div class="ci-v">Lun&ndash;Ven 08:00&ndash;18:00 &middot; Sabato su appuntamento</div></div>
+  </div>
+  <div style="display:flex;justify-content:flex-end;margin-top:3mm;align-items:center;gap:4mm">
+    <div style="text-align:right"><div style="font-size:6.5pt;color:var(--muted);margin-bottom:1mm">Inquadra per accedere al sito</div><div style="font-size:6pt;color:var(--y);font-family:'IBM Plex Mono',monospace">WWW.TECNOSALDO.IT</div></div>
+    <canvas id="qr2" width="68" height="68" style="border-radius:4px;background:#fff;padding:3px;display:block;flex-shrink:0"></canvas>
+  </div>
+</div>
+<div class="pf" style="margin-top:2mm"><span class="pfb">TECNOSALDO</span><span>www.tecnosaldo.it &middot; +39 393 4775160 &middot; commerciale@tecnosaldo.it</span><span>pag. 14</span></div>
+</div>
 <script>
+
 var SECS=[];for(var i=0;i<14;i++){var el=document.getElementById('p'+i);if(el)SECS.push(el);}
 var NDS=document.querySelectorAll('.nd');
 function goTo(n){if(SECS[n])SECS[n].scrollIntoView({behavior:'smooth'});}
@@ -485,24 +554,29 @@ var cur=document.getElementById('cur'),cur2=document.getElementById('cur2');
 document.addEventListener('mousemove',function(e){cur.style.left=e.clientX+'px';cur.style.top=e.clientY+'px';cur2.style.left=e.clientX+'px';cur2.style.top=e.clientY+'px';});
 document.addEventListener('mousedown',function(){cur.style.transform='translate(-50%,-50%) scale(2)';});
 document.addEventListener('mouseup',function(){cur.style.transform='translate(-50%,-50%) scale(1)';});
-var hero=document.getElementById('heroTilt');
-if(hero){var p0=document.getElementById('p0');p0.addEventListener('mousemove',function(e){var r=p0.getBoundingClientRect();var x=(e.clientX-r.left-r.width/2)/(r.width/2);var y=(e.clientY-r.top-r.height/2)/(r.height/2);hero.style.transform='perspective(1200px) rotateY('+(-x*6)+'deg) rotateX('+(y*4)+'deg)';});p0.addEventListener('mouseleave',function(){hero.style.transform='';});}
+/* Cover 3D tilt */
+var hero=document.getElementById('covHero');
+if(hero){var p0=document.getElementById('p0');p0.addEventListener('mousemove',function(e){var r=p0.getBoundingClientRect();var x=(e.clientX-r.left-r.width/2)/(r.width/2);var y=(e.clientY-r.top-r.height/2)/(r.height/2);hero.style.transform='perspective(1200px) rotateY('+(-x*5)+'deg) rotateX('+(y*3)+'deg)';});p0.addEventListener('mouseleave',function(){hero.style.transform='';});}
+/* Sparks */
 var canvas=document.getElementById('bg'),ctx=canvas.getContext('2d'),P=[],cols=['#f5c400','#fff7a0','#ff8800','#ffffff','#44ff88'];
 function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
 resize();window.addEventListener('resize',resize);
-function emit(x,y,n){n=n||8;for(var i=0;i<n;i++){var ang=Math.random()*Math.PI*2,spd=Math.random()*4+1;P.push({x:x,y:y,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd-Math.random()*2,life:1,decay:Math.random()*.02+.015,size:Math.random()*2.5+.5,col:cols[Math.floor(Math.random()*cols.length)]});}}
-function loop(){ctx.clearRect(0,0,canvas.width,canvas.height);if(Math.random()<.06)emit(Math.random()*canvas.width,Math.random()*canvas.height*.5,3);P=P.filter(function(p){p.x+=p.vx;p.y+=p.vy;p.vy+=.1;p.vx*=.98;p.life-=p.decay;if(p.life<=0)return false;ctx.globalAlpha=p.life;ctx.fillStyle=p.col;ctx.shadowBlur=6;ctx.shadowColor=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;return true;});ctx.globalAlpha=1;requestAnimationFrame(loop);}
+function emit(x,y,n){n=n||8;for(var i=0;i<n;i++){var a=Math.random()*Math.PI*2,s=Math.random()*4+1;P.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-Math.random()*2,life:1,dec:Math.random()*.022+.014,sz:Math.random()*2.5+.5,col:cols[Math.floor(Math.random()*cols.length)]});}}
+function loop(){ctx.clearRect(0,0,canvas.width,canvas.height);if(Math.random()<.05)emit(Math.random()*canvas.width,Math.random()*canvas.height*.4,3);P=P.filter(function(p){p.x+=p.vx;p.y+=p.vy;p.vy+=.1;p.vx*=.98;p.life-=p.dec;if(p.life<=0)return false;ctx.globalAlpha=p.life;ctx.fillStyle=p.col;ctx.shadowBlur=6;ctx.shadowColor=p.col;ctx.beginPath();ctx.arc(p.x,p.y,p.sz,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;return true;});ctx.globalAlpha=1;requestAnimationFrame(loop);}
 loop();
-document.addEventListener('click',function(e){emit(e.clientX,e.clientY,20);});
+document.addEventListener('click',function(e){emit(e.clientX,e.clientY,18);});
+/* Flip cards */
 document.querySelectorAll('.fc').forEach(function(card){
-  card.addEventListener('mousemove',function(e){if(card.classList.contains('flipped'))return;var r=card.getBoundingClientRect();var x=(e.clientX-r.left-r.width/2)/(r.width/2);var y=(e.clientY-r.top-r.height/2)/(r.height/2);card.querySelector('.fc-i').style.transform='perspective(900px) rotateY('+(-x*8)+'deg) rotateX('+(y*6)+'deg) scale(1.04)';});
+  card.addEventListener('mousemove',function(e){if(card.classList.contains('flipped'))return;var r=card.getBoundingClientRect();var x=(e.clientX-r.left-r.width/2)/(r.width/2);var y=(e.clientY-r.top-r.height/2)/(r.height/2);card.querySelector('.fc-i').style.transform='perspective(700px) rotateY('+(-x*9)+'deg) rotateX('+(y*7)+'deg) scale(1.05)';});
   card.addEventListener('mouseleave',function(){if(!card.classList.contains('flipped'))card.querySelector('.fc-i').style.transform='';});
-  card.addEventListener('click',function(){var fi=card.querySelector('.fc-i');fi.style.transform='';card.classList.toggle('flipped');if(card.classList.contains('flipped')){var qc=card.querySelector('canvas.fc-qr-c');if(qc&&!qc.dataset.rendered&&typeof QRCode!=='undefined'){QRCode.toCanvas(qc,qc.dataset.url||'https://www.tecnosaldo.it',{width:44,margin:1,color:{dark:'#000000',light:'#ffffff'}},function(){qc.dataset.rendered='1';});}}});
+  card.addEventListener('click',function(){var fi=card.querySelector('.fc-i');fi.style.transform='';card.classList.toggle('flipped');if(card.classList.contains('flipped')){var qc=card.querySelector('canvas.fc-qrc');if(qc&&!qc.dataset.rendered&&typeof QRCode!=='undefined'){QRCode.toCanvas(qc,qc.dataset.url||'https://www.tecnosaldo.it',{width:50,margin:1,color:{dark:'#000000',light:'#ffffff'}},function(){qc.dataset.rendered='1';});}}});
 });
-var reveals=document.querySelectorAll('.reveal');
-var obs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}});},{threshold:.1,rootMargin:'0px 0px -40px 0px'});
-reveals.forEach(function(r){obs.observe(r);});
+/* IntersectionObserver reveal */
+var obs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}});},{threshold:.08,rootMargin:'0px 0px -30px 0px'});
+document.querySelectorAll('.reveal').forEach(function(r){obs.observe(r);});
+/* QR codes for cover + servizi */
 document.addEventListener('DOMContentLoaded',function(){if(typeof QRCode==='undefined')return;['qr1','qr2'].forEach(function(id){var el=document.getElementById(id);if(el)QRCode.toCanvas(el,'https://www.tecnosaldo.it',{width:el.width,margin:1,color:{dark:'#000000',light:'#ffffff'}},function(){});});});
+
 </script>
 </body>
 </html>
