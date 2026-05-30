@@ -4,6 +4,8 @@ Hand Gesture Control System  v2
 Dual-hand support · Landmark EMA smoothing · Temporal gesture stabilisation
 """
 
+from __future__ import annotations
+
 import cv2
 import mediapipe as mp
 import numpy as np
@@ -717,7 +719,12 @@ class DualHandProcessor:
         m = self.mouse
         try:
             if action == "hotkey" and args:
-                keys = args if isinstance(args, list) else [args]
+                if isinstance(args, list):
+                    keys = args
+                elif isinstance(args, str) and "+" in args:
+                    keys = [k.strip() for k in args.split("+") if k.strip()]
+                else:
+                    keys = [str(args)]
                 m.hotkey(*keys)
             elif action == "open_url" and args:
                 url = str(args)
@@ -1294,21 +1301,19 @@ class CustomGestureRecogniser(GestureRecogniser):
         return name if name else super().classify(lm)
 
     def _knn(self, fv: list) -> str | None:
-        best_dist = float("inf")
-        best_name = None
+        candidates: list[tuple[float, str]] = []
         for name, entry in self._db._d.items():
-            samples = entry.get("samples", [])
-            if not samples:
-                continue
-            # nearest-neighbour over all stored samples for this gesture
-            for sample in samples:
+            for sample in entry.get("samples", []):
                 d = math.sqrt(sum((a - b) ** 2 for a, b in zip(fv, sample)))
-                if d < best_dist:
-                    best_dist = d
-                    best_name = name
-        if best_name and best_dist < self.CONF_THRESH:
-            return best_name
-        return None
+                candidates.append((d, name))
+        if not candidates:
+            return None
+        candidates.sort(key=lambda x: x[0])
+        k_nearest = candidates[: self.K]
+        if k_nearest[0][0] >= self.CONF_THRESH:
+            return None
+        best_name, _ = Counter(name for _, name in k_nearest).most_common(1)[0]
+        return best_name
 
 
 # ─────────────────────────────────────────────────────────────
@@ -1779,7 +1784,8 @@ class Dashboard(tk.Tk):
                     self._act_lbl.configure(text=self._cam.action)
                     n = self._cam.n_hands
                     self._hands_lbl.configure(
-                        text=f"{'✋' * n}  {n} mano{'i' if n != 1 else ''}")
+                        text=(f"{'✋' * n}  {n} man{'i' if n != 1 else 'o'}"
+                              if n else ""))
         except Exception:
             pass
 
