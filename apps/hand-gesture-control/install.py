@@ -93,7 +93,7 @@ def upgrade_pip():
 # ──────────────────────────────────────────────────────────────
 CORE_PACKAGES = [
     ("opencv-python",      "4.8.0"),
-    ("mediapipe",          "0.10.0"),
+    ("mediapipe",          "0.10.0,<0.10.14"),  # 0.10.14+ rimuove mp.solutions
     ("pyautogui",          "0.9.54"),
     ("numpy",              "1.24.0"),
     ("Pillow",             "10.0.0"),
