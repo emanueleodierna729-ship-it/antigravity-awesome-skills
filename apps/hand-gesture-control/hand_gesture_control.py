@@ -16,6 +16,7 @@ import math
 import sys
 import re
 import os
+import json
 import webbrowser
 import subprocess
 import platform as _platform
@@ -439,10 +440,11 @@ class SmoothMouse:
 #  Modifier hand (wrist.x < 0.5)            = mode / shortcut
 # ─────────────────────────────────────────────────────────────
 class DualHandProcessor:
-    def __init__(self, mouse: SmoothMouse):
+    def __init__(self, mouse: SmoothMouse, db: "GestureDatabase | None" = None):
         self.mouse   = mouse
+        self._db     = db
         self._smoother = LandmarkSmoother(Cfg.LMARK_ALPHA)
-        self._rec    = GestureRecogniser()
+        self._rec    = CustomGestureRecogniser(db) if db else GestureRecogniser()
         self._stab   = {"dom": GestureStabiliser(), "mod": GestureStabiliser()}
         self._vel    = {"dom": VelocityTracker(),   "mod": VelocityTracker()}
 
@@ -563,6 +565,13 @@ class DualHandProcessor:
         m  = self.mouse
         ix = lm[HandTracker.INDEX_TIP][0]
         iy = lm[HandTracker.INDEX_TIP][1]
+
+        # Custom-trained gesture action (takes priority over built-in rules)
+        if self._db:
+            entry = self._db.get_entry(g)
+            if entry and entry.get("action"):
+                self._exec_custom(entry["action"], entry.get("args"))
+                return f"✓ {g}"
 
         # Modifier overrides
         if self._mod_mode == G.MOD_FREEZE:
@@ -702,6 +711,35 @@ class DualHandProcessor:
             self._scroll_ref = None
 
         return ""
+
+    # ── custom gesture executor ───────────────────────────────
+    def _exec_custom(self, action: str, args):
+        m = self.mouse
+        try:
+            if action == "hotkey" and args:
+                keys = args if isinstance(args, list) else [args]
+                m.hotkey(*keys)
+            elif action == "open_url" and args:
+                url = str(args)
+                if not url.startswith("http"):
+                    url = "https://" + url
+                webbrowser.open(url)
+            elif action == "search" and args:
+                webbrowser.open(f"https://www.google.it/search?q={str(args).replace(' ', '+')}")
+            elif action == "zoom" and args is not None:
+                m.zoom(int(args))
+            elif action == "screenshot":
+                ts   = time.strftime("%Y%m%d_%H%M%S")
+                path = os.path.expanduser(f"~/Desktop/screenshot_{ts}.png")
+                pyautogui.screenshot(path)
+            elif action == "type" and args:
+                pyautogui.write(str(args), interval=0.04)
+            elif action == "create_folder":
+                name   = str(args) if args else "Nuova Cartella"
+                target = os.path.join(os.path.expanduser("~"), "Desktop", name)
+                os.makedirs(target, exist_ok=True)
+        except Exception:
+            pass
 
     # ── helpers ───────────────────────────────────────────────
     def _reset_pinch(self):
@@ -851,7 +889,8 @@ class CameraThread(threading.Thread):
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, Cfg.CAM_H)
 
         tracker   = HandTracker()
-        processor = DualHandProcessor(self.app.mouse)
+        db        = getattr(self.app, "_db", None)
+        processor = DualHandProcessor(self.app.mouse, db)
 
         t0 = time.perf_counter()
         fc = 0
@@ -874,6 +913,13 @@ class CameraThread(threading.Thread):
                 self.mod_g  = mod_g
                 self.action = action
                 self._draw_hud(frame, dom_g, mod_g, action, hands)
+
+                # Feed recorder if a recording session is active
+                recorder = getattr(self.app, "_recorder", None)
+                if recorder and recorder.state in (
+                        GestureRecorder.COUNTDOWN, GestureRecorder.RECORDING) and hands:
+                    dom_lm = max(hands, key=lambda h: h[0][HandTracker.WRIST][0])[0]
+                    recorder.feed_frame(dom_lm)
             else:
                 self.dom_g = self.mod_g = G.NONE
                 self.action = ""
@@ -1100,15 +1146,184 @@ class VoiceController:
 
 
 # ─────────────────────────────────────────────────────────────
+#  GESTURE DATABASE  — persistent storage of user-trained gestures
+# ─────────────────────────────────────────────────────────────
+class GestureDatabase:
+    DB_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "user_gestures.json")
+
+    def __init__(self):
+        self._d: dict = {}
+        self._load()
+
+    # ── public API ────────────────────────────────────────────
+    def add_sample(self, name: str, fv: list):
+        if name not in self._d:
+            self._d[name] = {"samples": [], "action": None, "args": None}
+        self._d[name]["samples"].append(fv)
+
+    def set_action(self, name: str, action: str, args=None):
+        if name not in self._d:
+            self._d[name] = {"samples": [], "action": None, "args": None}
+        self._d[name]["action"] = action
+        self._d[name]["args"]   = args
+
+    def get_entry(self, name: str) -> dict | None:
+        return self._d.get(name)
+
+    def remove(self, name: str):
+        self._d.pop(name, None)
+
+    def list_names(self) -> list:
+        return sorted(self._d.keys())
+
+    def sample_count(self, name: str) -> int:
+        return len(self._d.get(name, {}).get("samples", []))
+
+    def save(self):
+        try:
+            with open(self.DB_FILE, "w", encoding="utf-8") as f:
+                json.dump(self._d, f, indent=2, ensure_ascii=False)
+        except Exception:
+            pass
+
+    def _load(self):
+        try:
+            with open(self.DB_FILE, encoding="utf-8") as f:
+                self._d = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            self._d = {}
+
+
+# ─────────────────────────────────────────────────────────────
+#  GESTURE RECORDER  — collects landmark samples for learning
+# ─────────────────────────────────────────────────────────────
+class GestureRecorder:
+    RECORD_FRAMES  = 30
+    COUNTDOWN_SECS = 3
+
+    IDLE        = "IDLE"
+    COUNTDOWN   = "COUNTDOWN"
+    RECORDING   = "RECORDING"
+    DONE        = "DONE"
+
+    def __init__(self, db: GestureDatabase, recogniser):
+        self._db         = db
+        self._rec        = recogniser
+        self._state      = self.IDLE
+        self._name       = ""
+        self._samples    = []
+        self._start_time = 0.0
+        self._on_done    = None
+
+    def start(self, name: str, on_done=None):
+        self._name       = name.strip()
+        self._samples    = []
+        self._state      = self.COUNTDOWN
+        self._start_time = time.time()
+        self._on_done    = on_done
+
+    def feed_frame(self, lm: list):
+        if self._state == self.COUNTDOWN:
+            if time.time() - self._start_time >= self.COUNTDOWN_SECS:
+                self._state      = self.RECORDING
+                self._start_time = time.time()
+        elif self._state == self.RECORDING:
+            fv = self._rec.feature_vector(lm)
+            self._samples.append(fv)
+            if len(self._samples) >= self.RECORD_FRAMES:
+                self._finish()
+
+    def _finish(self):
+        for fv in self._samples:
+            self._db.add_sample(self._name, fv)
+        self._db.save()
+        self._state = self.DONE
+        if self._on_done:
+            self._on_done(self._name)
+
+    def cancel(self):
+        self._state = self.IDLE
+
+    @property
+    def state(self) -> str:
+        return self._state
+
+    @property
+    def progress(self) -> float:
+        if self._state == self.RECORDING:
+            return min(1.0, len(self._samples) / self.RECORD_FRAMES)
+        if self._state == self.COUNTDOWN:
+            return 0.0
+        if self._state == self.DONE:
+            return 1.0
+        return 0.0
+
+    @property
+    def countdown_remaining(self) -> int:
+        if self._state != self.COUNTDOWN:
+            return 0
+        return max(0, self.COUNTDOWN_SECS - int(time.time() - self._start_time))
+
+
+# ─────────────────────────────────────────────────────────────
+#  CUSTOM GESTURE RECOGNISER  — k-NN over user-trained samples
+#  Falls back to hardcoded rules when no custom match found
+# ─────────────────────────────────────────────────────────────
+class CustomGestureRecogniser(GestureRecogniser):
+    K           = 3
+    CONF_THRESH = 0.12   # max L2 distance to accept a custom match
+
+    def __init__(self, db: GestureDatabase):
+        super().__init__()
+        self._db = db
+
+    def feature_vector(self, lm: list) -> list:
+        H    = HandTracker
+        f    = [float(b) for b in self.fingers_up(lm)]
+        tips = [H.THUMB_TIP, H.INDEX_TIP, H.MIDDLE_TIP, H.RING_TIP, H.PINKY_TIP]
+        inter = [self.pinch(lm, tips[i], tips[j])
+                 for i in range(5) for j in range(i + 1, 5)]
+        wrist = [self.pinch(lm, H.WRIST, t) for t in tips]
+        return [*f, *inter, *wrist]   # 20 dimensions
+
+    def classify(self, lm) -> str:
+        if lm is None:
+            return G.NONE
+        fv   = self.feature_vector(lm)
+        name = self._knn(fv)
+        return name if name else super().classify(lm)
+
+    def _knn(self, fv: list) -> str | None:
+        best_dist = float("inf")
+        best_name = None
+        for name, entry in self._db._d.items():
+            samples = entry.get("samples", [])
+            if not samples:
+                continue
+            # nearest-neighbour over all stored samples for this gesture
+            for sample in samples:
+                d = math.sqrt(sum((a - b) ** 2 for a, b in zip(fv, sample)))
+                if d < best_dist:
+                    best_dist = d
+                    best_name = name
+        if best_name and best_dist < self.CONF_THRESH:
+            return best_name
+        return None
+
+
+# ─────────────────────────────────────────────────────────────
 #  DASHBOARD
 # ─────────────────────────────────────────────────────────────
 class Dashboard(tk.Tk):
     def __init__(self):
         super().__init__()
         self.mouse       = SmoothMouse()
-        self.hand_active = False
+        self.hand_active = True           # attivo di default all'avvio
         self._vk         = None
         self._cam        = None
+        self._db         = GestureDatabase()
+        self._recogniser = CustomGestureRecogniser(self._db)
+        self._recorder   = GestureRecorder(self._db, self._recogniser)
         self._voice      = VoiceController(self.mouse, self._on_voice_cmd)
 
         self._setup_window()
@@ -1130,8 +1345,8 @@ class Dashboard(tk.Tk):
         tk.Label(hdr, text="✋  Hand Gesture Control  v2",
                  font=("Segoe UI", 19, "bold"),
                  bg=Cfg.BG_DARK, fg=Cfg.TEXT).pack(side="left")
-        self._status_lbl = tk.Label(hdr, text="●  OFFLINE",
-                 font=("Segoe UI", 11), bg=Cfg.BG_DARK, fg="#ff4444")
+        self._status_lbl = tk.Label(hdr, text="●  ATTIVO",
+                 font=("Segoe UI", 11), bg=Cfg.BG_DARK, fg=Cfg.SUCCESS)
         self._status_lbl.pack(side="right", padx=16)
         self._hands_lbl = tk.Label(hdr, text="",
                  font=("Segoe UI", 10), bg=Cfg.BG_DARK, fg=Cfg.TEXT_DIM)
@@ -1182,9 +1397,13 @@ class Dashboard(tk.Tk):
         tab_guide = tk.Frame(nb, bg=Cfg.BG_MID)
         nb.add(tab_guide, text=" Guida ")
 
+        tab_learn = tk.Frame(nb, bg=Cfg.BG_DARK)
+        nb.add(tab_learn, text=" Apprendi ")
+
         self._build_hands_tab(tab_hands)
         self._build_voice_tab(tab_voice)
         self._build_guide_tab(tab_guide)
+        self._build_learn_tab(tab_learn)
 
     def _card(self, parent, title):
         f = tk.Frame(parent, bg=Cfg.BG_CARD)
@@ -1199,8 +1418,8 @@ class Dashboard(tk.Tk):
                  font=("Segoe UI", 8), bg=Cfg.BG_CARD,
                  fg=Cfg.TEXT_DIM, justify="center").pack()
         self._hand_btn = tk.Button(
-            c1, text="▶  ATTIVA",
-            font=("Segoe UI", 11, "bold"), bg=Cfg.SUCCESS, fg="#000000",
+            c1, text="⏹  DISATTIVA",   # attivo di default
+            font=("Segoe UI", 11, "bold"), bg=Cfg.ACCENT, fg=Cfg.TEXT,
             relief="flat", bd=0, cursor="hand2", padx=16, pady=8,
             command=self._toggle_hand)
         self._hand_btn.pack(pady=10, ipadx=8)
@@ -1338,6 +1557,155 @@ class Dashboard(tk.Tk):
             tk.Label(r, text=a, font=("Segoe UI", 8),
                      bg=Cfg.BG_MID, fg=Cfg.TEXT_DIM, anchor="w").pack(side="left")
 
+    def _build_learn_tab(self, parent):
+        _ACTIONS = [
+            ("hotkey",        "Tasto rapido (es. ctrl+c)"),
+            ("open_url",      "Apri URL"),
+            ("search",        "Cerca su Google"),
+            ("type",          "Digita testo"),
+            ("screenshot",    "Screenshot"),
+            ("zoom",          "Zoom (+1 o -1)"),
+            ("create_folder", "Crea cartella"),
+        ]
+
+        # ── registra gesto ────────────────────────────────────
+        c1 = self._card(parent, "REGISTRA NUOVO GESTO")
+        row_n = tk.Frame(c1, bg=Cfg.BG_CARD)
+        row_n.pack(fill="x", padx=10, pady=2)
+        tk.Label(row_n, text="Nome:", font=("Segoe UI", 9),
+                 bg=Cfg.BG_CARD, fg=Cfg.TEXT_DIM, width=7, anchor="w").pack(side="left")
+        self._learn_name_var = tk.StringVar()
+        tk.Entry(row_n, textvariable=self._learn_name_var,
+                 font=("Segoe UI", 9), bg=Cfg.BG_MID, fg=Cfg.TEXT,
+                 insertbackground=Cfg.TEXT, relief="flat", width=14
+                 ).pack(side="left", padx=4)
+
+        row_a = tk.Frame(c1, bg=Cfg.BG_CARD)
+        row_a.pack(fill="x", padx=10, pady=2)
+        tk.Label(row_a, text="Azione:", font=("Segoe UI", 9),
+                 bg=Cfg.BG_CARD, fg=Cfg.TEXT_DIM, width=7, anchor="w").pack(side="left")
+        self._learn_action_var = tk.StringVar(value=_ACTIONS[0][0])
+        opt = tk.OptionMenu(row_a, self._learn_action_var,
+                            *[a[0] for a in _ACTIONS])
+        opt.configure(bg=Cfg.BG_MID, fg=Cfg.TEXT, font=("Segoe UI", 8),
+                      activebackground=Cfg.BG_CARD, relief="flat", bd=0)
+        opt["menu"].configure(bg=Cfg.BG_MID, fg=Cfg.TEXT)
+        opt.pack(side="left", padx=4)
+
+        row_v = tk.Frame(c1, bg=Cfg.BG_CARD)
+        row_v.pack(fill="x", padx=10, pady=2)
+        tk.Label(row_v, text="Arg:", font=("Segoe UI", 9),
+                 bg=Cfg.BG_CARD, fg=Cfg.TEXT_DIM, width=7, anchor="w").pack(side="left")
+        self._learn_arg_var = tk.StringVar()
+        tk.Entry(row_v, textvariable=self._learn_arg_var,
+                 font=("Segoe UI", 9), bg=Cfg.BG_MID, fg=Cfg.TEXT,
+                 insertbackground=Cfg.TEXT, relief="flat", width=14
+                 ).pack(side="left", padx=4)
+
+        self._learn_rec_btn = tk.Button(
+            c1, text="● REGISTRA  (3 sec countdown)",
+            font=("Segoe UI", 9, "bold"), bg=Cfg.ACCENT, fg=Cfg.TEXT,
+            relief="flat", bd=0, cursor="hand2", pady=6,
+            command=self._start_recording)
+        self._learn_rec_btn.pack(pady=8, fill="x", padx=12)
+
+        # progress bar (canvas-based)
+        self._learn_prog_frame = tk.Frame(c1, bg=Cfg.BG_CARD)
+        self._learn_prog_frame.pack(fill="x", padx=12, pady=(0, 6))
+        self._learn_prog_lbl = tk.Label(
+            self._learn_prog_frame, text="",
+            font=("Segoe UI", 8), bg=Cfg.BG_CARD, fg=Cfg.TEXT_DIM)
+        self._learn_prog_lbl.pack(side="right")
+        self._learn_prog_bar = tk.Canvas(
+            self._learn_prog_frame, height=6, bg=Cfg.BG_MID,
+            highlightthickness=0)
+        self._learn_prog_bar.pack(fill="x", side="left", expand=True, padx=(0, 6))
+
+        # ── lista gesti appresi ───────────────────────────────
+        c2 = self._card(parent, "GESTI APPRESI")
+        self._learn_list_frame = tk.Frame(c2, bg=Cfg.BG_CARD)
+        self._learn_list_frame.pack(fill="x", padx=8, pady=4)
+        self._learn_listbox = tk.Listbox(
+            self._learn_list_frame, bg=Cfg.BG_MID, fg=Cfg.TEXT,
+            font=("Consolas", 8), relief="flat", selectbackground=Cfg.ACCENT,
+            selectforeground=Cfg.TEXT, height=6, bd=0)
+        self._learn_listbox.pack(fill="x")
+        tk.Button(
+            c2, text="🗑  Elimina selezionato",
+            font=("Segoe UI", 8), bg=Cfg.BG_MID, fg=Cfg.ACCENT,
+            relief="flat", bd=0, cursor="hand2",
+            command=self._delete_gesture
+        ).pack(pady=(2, 8))
+        self._refresh_gesture_list()
+
+    def _start_recording(self):
+        name = self._learn_name_var.get().strip()
+        if not name:
+            self._learn_prog_lbl.configure(text="⚠ inserisci un nome", fg=Cfg.WARNING)
+            return
+        action = self._learn_action_var.get()
+        arg    = self._learn_arg_var.get().strip() or None
+        self._db.set_action(name, action, arg)
+        self._learn_rec_btn.configure(state="disabled", bg=Cfg.TEXT_DIM)
+        self._recorder.start(name, on_done=self._on_recording_done)
+        self._poll_recording()
+
+    def _poll_recording(self):
+        state = self._recorder.state
+        if state == GestureRecorder.COUNTDOWN:
+            sec = self._recorder.countdown_remaining
+            self._learn_prog_lbl.configure(
+                text=f"⏱ {sec}s", fg=Cfg.WARNING)
+            self._draw_progress_bar(0.0)
+            self.after(100, self._poll_recording)
+        elif state == GestureRecorder.RECORDING:
+            p = self._recorder.progress
+            n = int(p * GestureRecorder.RECORD_FRAMES)
+            self._learn_prog_lbl.configure(
+                text=f"{n}/{GestureRecorder.RECORD_FRAMES}", fg=Cfg.SUCCESS)
+            self._draw_progress_bar(p)
+            self.after(100, self._poll_recording)
+        # DONE or IDLE → handled by on_done callback
+
+    def _draw_progress_bar(self, frac: float):
+        bar = self._learn_prog_bar
+        bar.update_idletasks()
+        w = bar.winfo_width()
+        bar.delete("all")
+        bar.create_rectangle(0, 0, int(w * frac), 6,
+                             fill=Cfg.SUCCESS, outline="")
+
+    def _on_recording_done(self, name: str):
+        self.after(0, self._recording_done_ui, name)
+
+    def _recording_done_ui(self, name: str):
+        n = self._db.sample_count(name)
+        self._learn_prog_lbl.configure(
+            text=f"✓ {name}: {n} campioni", fg=Cfg.SUCCESS)
+        self._draw_progress_bar(1.0)
+        self._learn_rec_btn.configure(state="normal", bg=Cfg.ACCENT)
+        self._recorder.cancel()
+        self._refresh_gesture_list()
+
+    def _delete_gesture(self):
+        sel = self._learn_listbox.curselection()
+        if not sel:
+            return
+        name = self._learn_listbox.get(sel[0]).split("  →")[0].strip()
+        self._db.remove(name)
+        self._db.save()
+        self._refresh_gesture_list()
+
+    def _refresh_gesture_list(self):
+        self._learn_listbox.delete(0, "end")
+        for name in self._db.list_names():
+            entry  = self._db.get_entry(name)
+            action = entry.get("action") or "—"
+            arg    = entry.get("args") or ""
+            n      = self._db.sample_count(name)
+            label  = f"{name}  →  {action} {arg}  [{n}]"
+            self._learn_listbox.insert("end", label)
+
     # ── toggles ───────────────────────────────────────────────
     def _toggle_hand(self):
         self.hand_active = not self.hand_active
@@ -1391,41 +1759,47 @@ class Dashboard(tk.Tk):
         self._cam.start_capture()
 
     def _loop(self):
-        if self._cam:
-            frame = self._cam.get_frame()
-            if frame is not None:
-                h, w  = frame.shape[:2]
-                avail = self._left_panel.winfo_width()
-                dw    = max(300, avail - 16) if avail > 10 else 630
-                dh    = int(h * dw / w)
-                small = cv2.resize(frame, (dw, dh))
-                photo = ImageTk.PhotoImage(
-                    Image.fromarray(cv2.cvtColor(small, cv2.COLOR_BGR2RGB)))
-                self._cam_lbl.configure(image=photo)
-                self._cam_lbl.image = photo
+        try:
+            if self._cam:
+                frame = self._cam.get_frame()
+                if frame is not None:
+                    h, w  = frame.shape[:2]
+                    avail = self._left_panel.winfo_width()
+                    dw    = max(300, avail - 16) if avail > 10 else 630
+                    dh    = int(h * dw / w)
+                    small = cv2.resize(frame, (dw, dh))
+                    photo = ImageTk.PhotoImage(
+                        Image.fromarray(cv2.cvtColor(small, cv2.COLOR_BGR2RGB)))
+                    self._cam_lbl.configure(image=photo)
+                    self._cam_lbl.image = photo
 
-            if self.hand_active:
-                self._dom_lbl.configure(text=self._cam.dom_g or "—")
-                self._mod_lbl.configure(text=self._cam.mod_g or "—")
-                self._act_lbl.configure(text=self._cam.action)
-                n = self._cam.n_hands
-                self._hands_lbl.configure(
-                    text=f"{'✋' * n}  {n} mano{'i' if n != 1 else ''}")
+                if self.hand_active:
+                    self._dom_lbl.configure(text=self._cam.dom_g or "—")
+                    self._mod_lbl.configure(text=self._cam.mod_g or "—")
+                    self._act_lbl.configure(text=self._cam.action)
+                    n = self._cam.n_hands
+                    self._hands_lbl.configure(
+                        text=f"{'✋' * n}  {n} mano{'i' if n != 1 else ''}")
+        except Exception:
+            pass
 
-        # Voice status polling
-        status = self._voice.status
-        _COL = {
-            "ASCOLTO":           Cfg.SUCCESS,
-            "RICONOSCIMENTO...": Cfg.WARNING,
-            "AVVIO...":          Cfg.BLUE,
-            "NON CAPITO":        Cfg.WARNING,
-            "OFFLINE":           "#ff4444",
-            "MIC ERR":           Cfg.ACCENT,
-        }
-        col = _COL.get(status, Cfg.TEXT_DIM)
-        self._voice_dot.configure(fg=col)
-        self._voice_status_lbl.configure(text=status, fg=col)
-        self._voice_hdr_lbl.configure(text=f"🎤 {status}", fg=col)
+        try:
+            # Voice status polling
+            status = self._voice.status
+            _COL = {
+                "ASCOLTO":           Cfg.SUCCESS,
+                "RICONOSCIMENTO...": Cfg.WARNING,
+                "AVVIO...":          Cfg.BLUE,
+                "NON CAPITO":        Cfg.WARNING,
+                "OFFLINE":           "#ff4444",
+                "MIC ERR":           Cfg.ACCENT,
+            }
+            col = _COL.get(status, Cfg.TEXT_DIM)
+            self._voice_dot.configure(fg=col)
+            self._voice_status_lbl.configure(text=status, fg=col)
+            self._voice_hdr_lbl.configure(text=f"🎤 {status}", fg=col)
+        except Exception:
+            pass
 
         self.after(Cfg.DWELL_MS, self._loop)
 
@@ -1433,6 +1807,7 @@ class Dashboard(tk.Tk):
         if self._cam:
             self._cam.stop_capture()
         self._voice.stop()
+        self._db.save()
         self.destroy()
         sys.exit(0)
 
