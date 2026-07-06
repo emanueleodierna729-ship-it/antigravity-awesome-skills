@@ -589,7 +589,6 @@ We officially thank the following contributors for their help in making this rep
 - [@tomjwxf](https://github.com/tomjwxf)
 - [@Cerdore](https://github.com/Cerdore)
 - [@MetcalfSolutions](https://github.com/MetcalfSolutions)
-- [@warmskull](https://github.com/warmskull)
 - [@Wittlesus](https://github.com/Wittlesus)
 - [@digitamaz](https://github.com/digitamaz)
 - [@cryptoque](https://github.com/cryptoque)
@@ -696,6 +695,14 @@ We officially thank the following contributors for their help in making this rep
 - [@wede-wx](https://github.com/wede-wx)
 - [@xi-kari](https://github.com/xi-kari)
 - [@xwmxcz](https://github.com/xwmxcz)
+- [@bin1874](https://github.com/bin1874)
+- [@ch040602](https://github.com/ch040602)
+- [@cruisekkk](https://github.com/cruisekkk)
+- [@deveweber](https://github.com/deveweber)
+- [@jianyangzhai](https://github.com/jianyangzhai)
+- [@m1amgn](https://github.com/m1amgn)
+- [@SchwartzKamel](https://github.com/SchwartzKamel)
+- [@skiffer](https://github.com/skiffer)
 
 ## Star History
 
